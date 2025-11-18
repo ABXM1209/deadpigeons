@@ -1,6 +1,8 @@
 import {createBrowserRouter, type RouteObject, RouterProvider, useNavigate} from "react-router-dom"
 import ThemeToggle from "./ThemeToggle";
 import './App.css'
+import {Board} from "./Board.tsx";
+
 
 const myRoutes : RouteObject[] =[
     {
@@ -8,8 +10,8 @@ const myRoutes : RouteObject[] =[
         element: <Home/>
     },
     {
-        path: '/books',
-        element: <Books/>
+        path: '/board',
+        element: <Board/>
     },
     {
         path: '/authors',
@@ -44,9 +46,9 @@ function Home() {
                             }}>Homepage</a></li>
                             <li><a onClick={() => {
                                 navigate(
-                                    '/books'
+                                    '/board'
                                 )
-                            }}>Books</a></li>
+                            }}>Board</a></li>
                             <li><a onClick={() => {
                                 navigate(
                                     '/authors'
@@ -166,172 +168,6 @@ function Home() {
     );
 }
 
-function Books() {
-
-    const navigate = useNavigate()
-
-    return (
-        <>
-            <div className="navbar bg-base-100 shadow-sm">
-                <div className="navbar-start">
-                    <div className="dropdown">
-                        <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" /> </svg>
-                        </div>
-                        <ul
-                            tabIndex={0}
-                            className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-                            <li><a onClick={() => {
-                                navigate(
-                                    '/'
-                                )
-                            }}>Homepage</a></li>
-                            <li><a onClick={() => {
-                                navigate(
-                                    '/books'
-                                )
-                            }}>Books</a></li>
-                            <li><a onClick={() => {
-                                navigate(
-                                    '/authors'
-                                )
-                            }}>Authors</a></li>
-                            <li><a onClick={() => {
-                                navigate(
-                                    '/genre'
-                                )
-                            }}>Genre</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div className="navbar-center">
-                    <a className="btn-ghost text-xl">Books</a>
-                </div>
-                <div className="navbar-end">
-                    <ThemeToggle /> {}
-                </div>
-            </div>
-            <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
-                <table className="table">
-                    {/* head */}
-                    <thead>
-                    <tr>
-                        <th></th>
-                        <th>Title</th>
-                        <th>Pages</th>
-                        <th>Create date</th>
-                        <th>Genre</th>
-                        <th>Author</th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    {/* row 1 */}
-                    <tr className="hover:bg-base-300">
-                        <th>1</th>
-                        <td>The Silent River</td>
-                        <td>312</td>
-                        <td>2023-03-21</td>
-                        <td>Drama</td>
-                        <td>John Smith</td>
-                    </tr>
-
-                    {/* row 2 */}
-                    <tr className="hover:bg-base-300">
-                        <th>2</th>
-                        <td>Echoes of Time</td>
-                        <td>278</td>
-                        <td>2024-02-09</td>
-                        <td>Fantasy</td>
-                        <td>Emily Carter</td>
-                    </tr>
-
-                    {/* row 3 */}
-                    <tr className="hover:bg-base-300">
-                        <th>3</th>
-                        <td>Crimson Sky</td>
-                        <td>451</td>
-                        <td>2023-10-14</td>
-                        <td>Adventure</td>
-                        <td>Noah Davis</td>
-                    </tr>
-
-                    {/* row 4 */}
-                    <tr className="hover:bg-base-300">
-                        <th>4</th>
-                        <td>Golden Shadows</td>
-                        <td>230</td>
-                        <td>2022-11-05</td>
-                        <td>Mystery</td>
-                        <td>Olivia Wilson</td>
-                    </tr>
-
-                    {/* row 5 */}
-                    <tr className="hover:bg-base-300">
-                        <th>5</th>
-                        <td>Hidden Storm</td>
-                        <td>389</td>
-                        <td>2024-07-19</td>
-                        <td>Thriller</td>
-                        <td>Ethan Taylor</td>
-                    </tr>
-
-                    {/* row 6 */}
-                    <tr className="hover:bg-base-300">
-                        <th>6</th>
-                        <td>Whispers in the Dark</td>
-                        <td>198</td>
-                        <td>2023-08-11</td>
-                        <td>Horror</td>
-                        <td>Ava Miller</td>
-                    </tr>
-
-                    {/* row 7 */}
-                    <tr className="hover:bg-base-300">
-                        <th>7</th>
-                        <td>Beyond the Edge</td>
-                        <td>344</td>
-                        <td>2024-03-28</td>
-                        <td>Science Fiction</td>
-                        <td>Sophia Brown</td>
-                    </tr>
-
-                    {/* row 8 */}
-                    <tr className="hover:bg-base-300">
-                        <th>8</th>
-                        <td>The Final Chapter</td>
-                        <td>265</td>
-                        <td>2023-05-02</td>
-                        <td>Detective</td>
-                        <td>Lucas Moore</td>
-                    </tr>
-
-                    {/* row 9 */}
-                    <tr className="hover:bg-base-300">
-                        <th>9</th>
-                        <td>Broken Reflections</td>
-                        <td>317</td>
-                        <td>2025-01-25</td>
-                        <td>Romance</td>
-                        <td>Mia Anderson</td>
-                    </tr>
-
-                    {/* row 10 */}
-                    <tr className="hover:bg-base-300">
-                        <th>10</th>
-                        <td>The Forgotten Path</td>
-                        <td>402</td>
-                        <td>2022-12-16</td>
-                        <td>Adventure</td>
-                        <td>Liam Johnson</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </>
-    );
-}
-
 function Authors() {
 
     const navigate = useNavigate()
@@ -354,9 +190,9 @@ function Authors() {
                             }}>Homepage</a></li>
                             <li><a onClick={() => {
                                 navigate(
-                                    '/books'
+                                    '/board'
                                 )
-                            }}>Books</a></li>
+                            }}>Board</a></li>
                             <li><a onClick={() => {
                                 navigate(
                                     '/authors'
@@ -385,7 +221,7 @@ function Authors() {
                         <th></th>
                         <th>Name</th>
                         <th>Create date</th>
-                        <th>Books</th>
+                        <th>Board</th>
                     </tr>
                     </thead>
 
@@ -498,9 +334,9 @@ function Genre() {
                             }}>Homepage</a></li>
                             <li><a onClick={() => {
                                 navigate(
-                                    '/books'
+                                    '/board'
                                 )
-                            }}>Books</a></li>
+                            }}>Board</a></li>
                             <li><a onClick={() => {
                                 navigate(
                                     '/authors'
@@ -529,7 +365,7 @@ function Genre() {
                         <th></th>
                         <th>Genre</th>
                         <th>Create date</th>
-                        <th>Books</th>
+                        <th>Board</th>
                     </tr>
                     </thead>
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
-    const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+    const [theme, setTheme] = useState(localStorage.getItem("theme") || "retro");
 
     useEffect(() => {
         document.documentElement.setAttribute("data-theme", theme);
@@ -29,8 +29,8 @@ export default function ThemeToggle() {
             <input
                 type="checkbox"
                 className="toggle"
-                checked={theme === "dark"}
-                onChange={(e) => setTheme(e.target.checked ? "dark" : "light")}
+                checked={theme === "dim"}
+                onChange={(e) => setTheme(e.target.checked ? "dim" : "retro")}
             />
 
             {/* Moon icon */}
