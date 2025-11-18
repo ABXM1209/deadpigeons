@@ -1,21 +1,17 @@
 using System.Text.Json;
-using Microsoft.OpenApi.Models; // swagger package
 using api;
-using efscaffold.Entities;
-using Infrastructure.Postgres.Scaffolding;
-using Microsoft.AspNetCore.Mvc;
+using efscaffold;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var appOptions = builder.Services.AddAppOptions(builder.Configuration);
 Console.WriteLine(JsonSerializer.Serialize(appOptions));
 
-builder.Services.AddDbContext<MyDbContext>(conf =>
-{
-    conf.UseNpgsql(appOptions.DbConnectionString);
-    
-});
+builder.Services.AddDbContext<MyDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnectionString"))
+);
 
 // Add Swagger services
 builder.Services.AddEndpointsApiExplorer();
