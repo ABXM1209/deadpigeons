@@ -1,18 +1,32 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <ItemGroup>
-    <ProjectReference Include="..\efscaffold\efscaffold.csproj" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="9.0.6" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\efscaffold\efscaffold.csproj" />
+    </ItemGroup>
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+    <ItemGroup>
+
+        <!-- EF Core (match efscaffold) -->
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.7" />
+
+        <!-- PostgreSQL (match efscaffold) -->
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+        <PackageReference Include="Npgsql" Version="10.0.0-rc.1" />
+
+        <!-- Swagger packages (match efscaffold) -->
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="10.0.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.0.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.0.1" />
+
+    </ItemGroup>
 
 </Project>

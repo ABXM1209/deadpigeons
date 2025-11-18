@@ -1,32 +1,41 @@
-drop schema if exists library cascade;
-create schema if not exists library;
+DROP SCHEMA IF EXISTS deadpigeons CASCADE;
+CREATE SCHEMA IF NOT EXISTS deadpigeons;
 
-create table library.author
+CREATE TABLE deadpigeons.Users
 (
-    id        text primary key not null,
-    name      text             not null,
-    createdAt timestamp with time zone
+    id        text PRIMARY KEY NOT NULL,
+    name      text NOT NULL,
+    phone     text NOT NULL,
+    email     text NOT NULL,
+    password  text NOT NULL,
+    balance   int NOT NULL,
+    isActive  boolean NOT NULL
 );
 
-create table library.genre
+CREATE TABLE deadpigeons.Boards
 (
-    id        text primary key not null,
-    name      text             not null,
-    createdAt timestamp with time zone
+    id        text PRIMARY KEY NOT NULL,
+    name      text NOT NULL,
+    weekNumber TIMESTAMPTZ,
+    totalWinners int NOT NULL,
+    winningNumbers text NOT NULL,
+    winningUsers text NOT NULL,
+    isOpen boolean NOT NULL
 );
 
-create table library.book
+CREATE TABLE deadpigeons.Admins
 (
-    id        text primary key not null,
-    title     text             not null,
-    pages     int              not null,
-    createdAt timestamp with time zone,
-    genreId   text             references library.genre (id) on delete set null
+    id        text PRIMARY KEY NOT NULL,
+    name      text NOT NULL,
+    email     text NOT NULL,
+    password  text NOT NULL
 );
 
-create table library.authorbookjunction
+CREATE TABLE deadpigeons.Transactions
 (
-    authorId text references library.author (id) on delete cascade,
-    bookId   text references library.book (id) on delete cascade,
-    primary key (authorId, bookId)
+    id        text PRIMARY KEY NOT NULL,
+    username  text NOT NULL,
+    transactionId text NOT NULL,
+    status int NOT NULL,
+    balance int NOT NULL
 );
