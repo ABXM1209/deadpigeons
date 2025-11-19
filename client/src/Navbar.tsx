@@ -14,10 +14,17 @@ export default function Navbar({ title }: NavbarProps) {
         <div className="navbar bg-base-100 shadow-sm">
             <div className="navbar-start">
                 <div className="dropdown">
-                    <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none"
-                             viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                    <div tabIndex={0}
+                         role="button"
+                         className="btn btn-ghost btn-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             className="h-5 w-5"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
                                   d="M4 6h16M4 12h16M4 18h7"/>
                         </svg>
                     </div>
@@ -32,7 +39,9 @@ export default function Navbar({ title }: NavbarProps) {
                 </div>
 
                 <div className="logo ml-5">
-                    <img src={logo} alt="logo" style={{ width: '50px', height: '50px'}} />
+                    <img src={logo}
+                         alt="logo"
+                         style={{ width: '50px', height: '50px'}} />
                 </div>
             </div>
 
@@ -42,7 +51,26 @@ export default function Navbar({ title }: NavbarProps) {
 
             <div className="navbar-end">
                 <ThemeToggle />
+                <button className="btn btn-ghost btn-circle hover:bg-base-200">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-log-in"
+                    >
+                        <path d="m10 17 5-5-5-5"/>
+                        <path d="M15 12H3"/>
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                    </svg>
+                </button>
+
             </div>
+
         </div>
     );
 }
