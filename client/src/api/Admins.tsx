@@ -1,16 +1,16 @@
-import {ApiClient, User} from "./apiClient.ts";
+import { ApiClient, Admin } from "./apiClient.ts";
 import { useEffect, useState } from "react";
 
-function Users() {
+function Admins() {
 
-    const [users, setUsers] = useState<User[]>([]);
+    const [admins, setAdmins] = useState<Admin[]>([]);
 
     useEffect(() => {
-        const client = new ApiClient("http://localhost:5139");
+        const Admin = new ApiClient("http://localhost:5139");
 
-        client.usersAll()
-            .then((data: User[]) => {
-                setUsers(data);
+        Admin.adminsAll()
+            .then((data: Admin[]) => {
+                setAdmins(data);
             })
             .catch((err: unknown) => {
                 if (err instanceof Error) {
@@ -22,29 +22,23 @@ function Users() {
     }, []);
 
     return (
-        <>
-
             <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
-                <h1 className={"flex justify-center text-3xl m-5"}>Users</h1>
-                <table className="table">
+                <h1 className={"flex justify-center text-3xl m-5"}>Admins</h1>
+                <table className="table" >
                     {/* head */}
-                    <thead>
-                    <tr>
+                    <thead >
+                    <tr >
                         <th>ID</th>
                         <th>Name</th>
                         <th>Email</th>
-                        <th>Phone</th>
-                        <th>Balance</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {users.map((u: User) => (
+                    {admins.map((u: Admin) => (
                         <tr key={u.id} className="hover:bg-base-300">
                             <th>{u.id}</th>
                             <td>{u.name}</td>
                             <td>{u.email}</td>
-                            <td>{u.phone}</td>
-                            <td>{u.balance} dkk</td>
                         </tr>
 
                     ))}
@@ -52,8 +46,7 @@ function Users() {
                     </tbody>
                 </table>
             </div>
-        </>
     );
 }
 
-export default Users;
+export default Admins;
