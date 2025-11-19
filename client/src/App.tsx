@@ -4,6 +4,7 @@ import './App.css'
 import {Board} from "./Board.tsx";
 import {Purchase} from "./Purchase.tsx";
 import Users from './api/Users.tsx';
+import {Login} from "./Login.tsx";
 
 const myRoutes : RouteObject[] =[
     {
@@ -21,7 +22,12 @@ const myRoutes : RouteObject[] =[
     {
         path: '/genre',
         element: <Genre/>
+    },
+    {
+        path: '/Login',
+        element: <Login/>
     }
+
 ]
 
 

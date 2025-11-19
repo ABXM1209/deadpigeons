@@ -20,33 +20,35 @@ public class AdminsController : ControllerBase
     // GET: /api/admins
     // ----------------------
     [HttpGet]
-    public async Task<ActionResult<List<Admin>>> GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        return await _context.Admins.ToListAsync();
+        var admins = await _context.Admins.ToListAsync();
+        return Ok(admins);
     }
 
     // ----------------------
     // GET: /api/admins/{id}
     // ----------------------
     [HttpGet("{id}")]
-    public async Task<ActionResult<Admin>> GetById(string id)
+    public async Task<IActionResult> GetById(string id)
     {
         var admin = await _context.Admins.FindAsync(id);
         if (admin == null)
-            return NotFound();
-
-        return admin;
+            return NotFound($"Admin with id {id} not found.");
+        return Ok(admin);
     }
 
     // ----------------------
     // POST: /api/admins
     // ----------------------
     [HttpPost]
-    public async Task<ActionResult<Admin>> Create(Admin admin)
+    public async Task<IActionResult> Create([FromBody] Admin admin)
     {
+        if (admin == null)
+            return BadRequest("Admin is null.");
+
         _context.Admins.Add(admin);
         await _context.SaveChangesAsync();
-
         return CreatedAtAction(nameof(GetById), new { id = admin.Id }, admin);
     }
 
@@ -54,37 +56,37 @@ public class AdminsController : ControllerBase
     // PUT: /api/admins/{id}
     // ----------------------
     [HttpPut("{id}")]
-    public async Task<ActionResult<Admin>> Update(string id, Admin admin)
+    public async Task<IActionResult> Update(string id, [FromBody] Admin admin)
     {
         if (id != admin.Id)
-            return BadRequest("ID mismatch.");
+            return BadRequest("Id mismatch.");
 
         var existingAdmin = await _context.Admins.FindAsync(id);
         if (existingAdmin == null)
-            return NotFound();
+            return NotFound($"Admin with id {id} not found.");
 
+        // updating fields
         existingAdmin.Name = admin.Name;
         existingAdmin.Email = admin.Email;
         existingAdmin.Password = admin.Password;
 
+        _context.Admins.Update(existingAdmin);
         await _context.SaveChangesAsync();
-
-        return existingAdmin;
+        return Ok(existingAdmin);
     }
 
     // ----------------------
     // DELETE: /api/admins/{id}
     // ----------------------
     [HttpDelete("{id}")]
-    public async Task<ActionResult<string>> Delete(string id)
+    public async Task<IActionResult> Delete(string id)
     {
         var admin = await _context.Admins.FindAsync(id);
         if (admin == null)
-            return NotFound();
+            return NotFound($"Admin with id {id} not found.");
 
         _context.Admins.Remove(admin);
         await _context.SaveChangesAsync();
-
-        return id;
+        return Ok($"Admin with id {id} deleted successfully.");
     }
 }

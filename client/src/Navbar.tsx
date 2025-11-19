@@ -51,7 +51,9 @@ export default function Navbar({ title }: NavbarProps) {
 
             <div className="navbar-end">
                 <ThemeToggle />
-                <button className="btn btn-ghost btn-circle hover:bg-base-200">
+                <button className="btn btn-ghost btn-circle hover:bg-base-200"
+                        onClick={() => navigate('/Login')}
+                >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
