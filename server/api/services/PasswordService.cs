@@ -1,4 +1,4 @@
-﻿namespace api.Services;
+﻿namespace api.services;
 
 public class PasswordService : IPasswordService
 {
