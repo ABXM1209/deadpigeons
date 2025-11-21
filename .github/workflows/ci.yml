@@ -16,6 +16,7 @@ jobs:
   client:
     name: Build & Test Client
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -26,26 +27,29 @@ jobs:
           node-version: '20'
 
       - name: Install Client Dependencies
-        run: |
-          cd client
-          npm install
+        working-directory: client
+        run: npm install
 
       - name: Build Client
-        run: |
-          cd client
-          npm run build
+        working-directory: client
+        run: npm run build
 
-      - name: Run Client Tests
-        run: |
-          cd client
-          npm test
+      - name: Test Client
+        working-directory: client
+        run: npm test
 
   server:
     name: Build & Test Server
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Setup Docker (For Testcontainers)
+        run: |
+          sudo systemctl start docker
+          docker ps
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -53,16 +57,15 @@ jobs:
           dotnet-version: '10.0'
 
       - name: Restore Server Dependencies
-        run: |
-          cd server
-          dotnet restore
+        working-directory: server
+        run: dotnet restore
 
       - name: Build Server
-        run: |
-          cd server
-          dotnet build --configuration Release --no-restore
+        working-directory: server
+        run: dotnet build --configuration Release --no-restore
 
       - name: Test Server
-        run: |
-          cd server
-          dotnet test --no-build --verbosity normal
+        working-directory: server
+        env:
+          DOTNET_NOLOGO: true
+        run: dotnet test --configuration Release --no-build --verbosity normal
