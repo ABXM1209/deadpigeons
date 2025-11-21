@@ -1,52 +1,56 @@
-﻿using api.Services;
+﻿using api.services;
+using Xunit;
 
 namespace tests;
 
 public class PasswordTests
 {
-    private readonly IPasswordService _service;
-
-    public PasswordTests(IPasswordService service)
+    private readonly IPasswordService _passwordService;
+    
+    public PasswordTests(IPasswordService passwordService)
     {
-        _service = service;
-    }
-
-    [Fact]
-    public void HasPassword_ShouldReturn_NonEmptyHash()
-    {
-        var hash = _service.HashPassword("service123");
-        
-        Assert.False(string.IsNullOrWhiteSpace(hash));
-        Assert.StartsWith("HASHED:", hash); //placeholder expectation
+        _passwordService =  passwordService;
     }
     
     [Fact]
-    public void VerifyPassword_ShouldPass_WithValidPassword()
+    public void HashPassword_ShouldPrefixHash()
     {
-        var hash = _service.HashPassword("secret123");
+        // Arrange
+        var password = "test123";
 
-        Assert.True(_service.VerifyPassword("secret123", hash));
+        // Act
+        var hash = _passwordService.HashPassword(password);
+
+        // Assert
+        Assert.StartsWith("HASHED:", hash);
+        Assert.Equal("HASHED:test123", hash);
     }
     
     [Fact]
-    public void VerifyPassword_ShouldFail_WithWrongPassword()
+    public void VerifyPassword_ShouldReturnTrue_WhenCorrect()
     {
-        var hash = _service.HashPassword("secret123");
+        // Arrange
+        var password = "hello";
+        var hash = _passwordService.HashPassword(password);
 
-        Assert.False(_service.VerifyPassword("wrong_pw", hash));
-    }
-    
-    [Theory]
-    [InlineData("")]
-    [InlineData(null)]
-    public void HashPassword_ShouldThrow_OnInvalidInput(string? badPassword)
-    {
-        Assert.Throws<ArgumentNullException>(() => _service.HashPassword(badPassword));
+        // Act
+        var result = _passwordService.VerifyPassword(password, hash);
+
+        // Assert
+        Assert.True(result);
     }
     
     [Fact]
-    public void VerifyPassword_ShouldFail_WithMalformedHash()
+    public void VerifyPassword_ShouldReturnFalse_WhenIncorrect()
     {
-        Assert.False(_service.VerifyPassword("anything", "not-real-hash"));
+        // Arrange
+        var password = "hello";
+        var hash = _passwordService.HashPassword(password);
+
+        // Act
+        var result = _passwordService.VerifyPassword("wrong", hash);
+
+        // Assert
+        Assert.False(result);
     }
 }

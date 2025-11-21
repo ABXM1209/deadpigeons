@@ -17,7 +17,7 @@
     <PackageReference Include="Xunit.DependencyInjection" Version="9.2.0" />
 
     <!-- TestContainers -->
-    <PackageReference Include="Testcontainers" Version="3.8.0" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="4.8.1" />
   </ItemGroup>
 
   <ItemGroup>
