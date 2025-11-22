@@ -1,6 +1,9 @@
 ﻿using api.Entity;
+using efscaffold;
 using efscaffold.Models;
 using Microsoft.AspNetCore.Mvc;
+using Xunit;
+
 
 public class TransactionsTests : TestBase
 {
@@ -15,7 +18,7 @@ public class TransactionsTests : TestBase
         {
             Id = "t1",
             Username = "john",
-            Status = "pending"
+            Status = 0
         };
 
         var result = await controller.Create(transaction);

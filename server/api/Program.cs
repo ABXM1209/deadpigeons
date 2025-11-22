@@ -2,8 +2,8 @@ using System.Text.Json;
 using Microsoft.OpenApi.Models;
 using api;
 using api.services;
-using efscaffold.Entities;
-using Infrastructure.Postgres.Scaffolding;
+using efscaffold;
+using efscaffold.Models; 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,11 +1,14 @@
 ﻿using api.services;
-using Infrastructure.Postgres.Scaffolding;
+using efscaffold;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Testcontainers.PostgreSql;
 using Xunit.DependencyInjection;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
+using DotNet.Testcontainers.Configurations;
+
 
 namespace tests;
 
@@ -19,16 +22,27 @@ public class Startup
         
         services.AddScoped<MyDbContext>(factory =>
         {
-            var postgreSqlContainer = new PostgreSqlBuilder().Build();
+            var postgreSqlContainer = new TestcontainersBuilder<PostgreSqlTestcontainer>()
+                .WithDatabase(new PostgreSqlTestcontainerConfiguration
+                {
+                    Database = "testdb",
+                    Username = "postgres",
+                    Password = "postgres"
+                })
+                .WithImage("postgres:15")
+                .WithCleanUp(true)
+                .Build();
+
             postgreSqlContainer.StartAsync().GetAwaiter().GetResult();
-            var connectionString = postgreSqlContainer.GetConnectionString();
+
             var options = new DbContextOptionsBuilder<MyDbContext>()
-                .UseNpgsql(connectionString)
+                .UseNpgsql(postgreSqlContainer.ConnectionString)
                 .Options;
-            
+
             var ctx = new MyDbContext(options);
             ctx.Database.EnsureCreated();
             return ctx;
         });
+
     }
 }

@@ -23,22 +23,16 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<Transaction> Transactions { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<User> Users { get; set; } 
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+{
+    if (!optionsBuilder.IsConfigured)
     {
-        DotNetEnv.Env.Load(); // load the .env file
-        var connectionString = Environment.GetEnvironmentVariable("DbConnectionString");
-
-        if (!string.IsNullOrEmpty(connectionString))
-        {
-            optionsBuilder.UseNpgsql(connectionString);
-        }
-        else
-        {
-            throw new InvalidOperationException("Connection string not found in environment variables.");
-        }
+        throw new InvalidOperationException("DbContextOptions were not configured.");
     }
+}
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,4 +1,8 @@
-﻿public class ContainerHealthTests : IClassFixture<PostgresFixture>
+﻿using Xunit;
+using efscaffold.Models;
+using DotNet.Testcontainers.Containers;
+
+public class ContainerHealthTests : IClassFixture<PostgresFixture>
 {
     private readonly PostgresFixture _fixture;
 
@@ -10,7 +14,7 @@
     [Fact]
     public async Task PostgresContainer_IsRunning()
     {
-        Assert.True(_fixture.Container.State == TestcontainersStates.Running);
+        Assert.True(_fixture.Container.State == TestcontainersState.Running);
     }
 
     [Fact]

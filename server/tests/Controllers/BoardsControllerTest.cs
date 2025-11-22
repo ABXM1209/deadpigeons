@@ -1,5 +1,6 @@
-﻿using api.Entity;
+﻿using Xunit;
 using efscaffold.Models;
+using api.Entity;
 using Microsoft.AspNetCore.Mvc;
 
 public class BoardsControllerTests : TestBase

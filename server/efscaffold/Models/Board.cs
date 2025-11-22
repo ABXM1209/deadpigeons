@@ -17,7 +17,7 @@ public partial class Board
     public string Name { get; set; } = null!;
 
     [Column("weeknumber")]
-    public DateTime? Weeknumber { get; set; }
+    public int Weeknumber { get; set; }
 
     [Column("totalwinners")]
     public int Totalwinners { get; set; }

@@ -1,6 +1,9 @@
 ﻿using api.Entity;
+using efscaffold;
 using efscaffold.Models;
 using Microsoft.AspNetCore.Mvc;
+using Xunit;
+
 
 public class UsersControllerTests : TestBase
 {

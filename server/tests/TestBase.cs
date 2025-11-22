@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using api.services;
+using Xunit;
 
 public abstract class TestBase : IClassFixture<PostgresFixture>
 {

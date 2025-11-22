@@ -1,7 +1,9 @@
 ﻿using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
+using DotNet.Testcontainers.Configurations;
 using Microsoft.EntityFrameworkCore;
 using efscaffold;
+using Xunit;
 
 public class PostgresFixture : IAsyncLifetime
 {
