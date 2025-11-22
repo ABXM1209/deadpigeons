@@ -1,15 +1,30 @@
+import {useNavigate} from "react-router-dom";
+import Navbar from "./Navbar.tsx";
+
+
 export function Login() {
+    const navigate = useNavigate();
+
     return (
-        <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
-            <legend className="fieldset-legend">Login</legend>
+        <>
+            <div className="flex flex-col h-screen">
+                <Navbar title="Login" />
 
-            <label className="label">Email</label>
-            <input type="email" className="input" placeholder="Email" />
+                <div className="flex flex-col justify-center items-center flex-1 min-h-0">
+                    <label className="label text-4xl mb-5">User Login</label>
 
-            <label className="label">Password</label>
-            <input type="password" className="input" placeholder="Password" />
+                    <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+                        <label className="label">Email</label>
+                        <input type="email" className="input" placeholder="example123@gmail.com" />
 
-            <button className="btn btn-neutral mt-4">Login</button>
-        </fieldset>
+                        <label className="label">Password</label>
+                        <input type="password" className="input" placeholder="Password" />
+
+                        <button className="btn btn-soft mt-5" onClick={() => navigate('/Board')}>Login</button>
+                    </fieldset>
+                </div>
+            </div>
+        </>
+
     )
 }

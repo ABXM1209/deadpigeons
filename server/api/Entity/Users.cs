@@ -20,32 +20,35 @@ public class UsersController : ControllerBase
     // GET: /api/users
     // ----------------------
     [HttpGet]
-    public async Task<ActionResult<List<User>>> GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        return await _context.Users.ToListAsync();
+        var users = await _context.Users.ToListAsync();
+        return Ok(users);
     }
 
     // ----------------------
     // GET: /api/users/{id}
     // ----------------------
     [HttpGet("{id}")]
-    public async Task<ActionResult<User>> GetById(string id)
+    public async Task<IActionResult> GetById(string id)
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null)
-            return NotFound();
-        return user;
+            return NotFound($"User with id {id} not found.");
+        return Ok(user);
     }
 
     // ----------------------
     // POST: /api/users
     // ----------------------
     [HttpPost]
-    public async Task<ActionResult<User>> Create(User user)
+    public async Task<IActionResult> Create([FromBody] User user)
     {
+        if (user == null)
+            return BadRequest("User is null.");
+
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
-
         return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
     }
 
@@ -53,15 +56,16 @@ public class UsersController : ControllerBase
     // PUT: /api/users/{id}
     // ----------------------
     [HttpPut("{id}")]
-    public async Task<ActionResult<User>> Update(string id, User user)
+    public async Task<IActionResult> Update(string id, [FromBody] User user)
     {
         if (id != user.Id)
-            return BadRequest("ID mismatch.");
+            return BadRequest("Id mismatch.");
 
         var existingUser = await _context.Users.FindAsync(id);
         if (existingUser == null)
-            return NotFound();
+            return NotFound($"User with id {id} not found.");
 
+        // تحديث الحقول المطلوبة
         existingUser.Name = user.Name;
         existingUser.Phone = user.Phone;
         existingUser.Email = user.Email;
@@ -69,24 +73,23 @@ public class UsersController : ControllerBase
         existingUser.Balance = user.Balance;
         existingUser.Isactive = user.Isactive;
 
+        _context.Users.Update(existingUser);
         await _context.SaveChangesAsync();
-
-        return existingUser;
+        return Ok(existingUser);
     }
 
     // ----------------------
     // DELETE: /api/users/{id}
     // ----------------------
     [HttpDelete("{id}")]
-    public async Task<ActionResult<string>> Delete(string id)
+    public async Task<IActionResult> Delete(string id)
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null)
-            return NotFound();
+            return NotFound($"User with id {id} not found.");
 
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
-
-        return id;
+        return Ok($"User with id {id} deleted successfully.");
     }
 }
