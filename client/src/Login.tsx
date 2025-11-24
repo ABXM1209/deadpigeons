@@ -20,7 +20,7 @@ export function Login() {
                         <label className="label">Password</label>
                         <input type="password" className="input" placeholder="Password" />
 
-                        <button className="btn btn-soft mt-5" onClick={() => navigate('/Board')}>Login</button>
+                        <button className="btn btn-soft mt-5" onClick={() => navigate('/UserBoard')}>Login</button>
                     </fieldset>
                 </div>
             </div>
