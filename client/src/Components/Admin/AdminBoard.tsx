@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Navbar from "../Navbar";
+import Navbar from "../Navbar.tsx";
 
 export function AdminBoard() {
 
@@ -41,13 +41,17 @@ export function AdminBoard() {
                 </div>
             )}
 
+            <div className="week-label flex justify-center text-3xl font-bold m-5">
+                Week <span className="ml-2">43</span>
+            </div>
+
             {/* INFO BOX */}
             <div className="flex justify-center mb-4 mt-5">
                 <div className="p-4 rounded-xl bg-base-200 text-center">
                     <p className="text-xl font-semibold">
                         Selected: {selected.length} / {max}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-500">
                         (Choose exactly 3 numbers)
                     </p>
                 </div>

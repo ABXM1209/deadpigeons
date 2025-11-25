@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import logo from "./assets/JerneIF-logo.png";
-import ThemeToggle from "./ThemeToggle";
+import logo from "../assets/JerneIF-logo.png";
+import ThemeToggle from "./ThemeToggle.tsx";
 
 
 type NavbarProps = {

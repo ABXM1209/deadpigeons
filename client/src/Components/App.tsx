@@ -1,13 +1,13 @@
 import {createBrowserRouter, type RouteObject, RouterProvider} from "react-router-dom"
-import './App.css'
+import '../App.css'
 import {UserBoard} from "./User/UserBoard.tsx";
-import {Purchase} from "./Purchase.tsx";
-import Users from './api/Users.tsx';
+import {Purchase} from "./User/Purchase.tsx";
+import Users from '../api/Users.tsx';
 import {Login} from "./Login.tsx";
-import Admins from "./api/Admins.tsx";
-import Transactions from "./api/Transactions.tsx";
+import Admins from "../api/Admins.tsx";
+import Transactions from "../api/Transactions.tsx";
 import {Transaction} from "./Admin/Transaction.tsx";
-import AdminBoards from "./api/AdminBoards.tsx";
+import AdminBoards from "../api/AdminBoards.tsx";
 import {AdminBoard} from "./Admin/AdminBoard.tsx";
 import {Overview} from "./Admin/Overview.tsx";
 import Navbar from "./Navbar.tsx";

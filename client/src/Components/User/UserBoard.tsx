@@ -69,7 +69,7 @@ export function UserBoard() {
                     <p className="text-lg">
                         Price: <span className="font-bold">{price} DKK</span>
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-500">
                         (You must select between 5 and 8 numbers)
                     </p>
                 </div>
