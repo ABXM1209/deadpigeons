@@ -30,25 +30,24 @@ export default function Navbar({ title }: NavbarProps) {
                     <ul className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
 
                         {/* Public */}
-                        <li><a onClick={() => navigate("/")}>Homepage</a></li>
+                        <li><button onClick={() => navigate("/")}>Homepage</button></li>
 
                         {/* USER NAVIGATION */}
                         {role === "user" && (
                             <>
-                                <li><a onClick={() => navigate("/userhome")}>User Home</a></li>
-                                <li><a onClick={() => navigate("/userBoard")}>My Board</a></li>
-                                <li><a onClick={() => navigate("/purchase")}>Purchase</a></li>
-                                <li><a onClick={() => navigate("/transaction")}>My Transactions</a></li>
+                                <li><button onClick={() => navigate("/userhome")}>User Home</button></li>
+                                <li><button onClick={() => navigate("/userBoard")}>My Board</button></li>
+                                <li><button onClick={() => navigate("/purchase")}>Purchase</button></li>
                             </>
                         )}
 
                         {/* ADMIN NAVIGATION */}
                         {role === "admin" && (
                             <>
-                                <li><a onClick={() => navigate("/adminhome")}>Admin Home</a></li>
-                                <li><a onClick={() => navigate("/adminBoard")}>Admin Board</a></li>
-                                <li><a onClick={() => navigate("/transactions")}>All Transactions</a></li>
-                                <li><a onClick={() => navigate("/overview")}>Overview</a></li>
+                                <li><button onClick={() => navigate("/adminhome")}>Admin Home</button></li>
+                                <li><button onClick={() => navigate("/adminBoard")}>Admin Board</button></li>
+                                <li><button onClick={() => navigate("/transaction")}>All Transactions</button></li>
+                                <li><button onClick={() => navigate("/overview")}>Overview</button></li>
                             </>
                         )}
                     </ul>
