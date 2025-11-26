@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import logo from "./assets/JerneIF-logo.png";
-import ThemeToggle from "./ThemeToggle";
+import logo from "../assets/JerneIF-logo.png";
+import ThemeToggle from "./ThemeToggle.tsx";
 import { useAtom } from "jotai";
-import { userAtom } from "./authAtoms";
+import { userAtom } from "../authAtoms.tsx";
 
 type NavbarProps = {
     title: string;
@@ -49,10 +49,10 @@ export default function Navbar({ title }: NavbarProps) {
                         {!isAdmin && (
                             <>
                                 <li>
-                                    <a onClick={() => navigate("/")}>Homepage</a>
+                                    <a onClick={() => navigate("/user-home")}>Homepage</a>
                                 </li>
                                 <li>
-                                    <a onClick={() => navigate("/userBoard")}>Board</a>
+                                    <a onClick={() => navigate("/user-board")}>Board</a>
                                 </li>
                                 <li>
                                     <a onClick={() => navigate("/purchase")}>Purchase</a>
@@ -64,13 +64,16 @@ export default function Navbar({ title }: NavbarProps) {
                         {isAdmin && (
                             <>
                                 <li>
+                                    <a onClick={() => navigate("/admin-home")}>Homepage</a>
+                                </li>
+                                <li>
                                     <a onClick={() => navigate("/overview")}>Overview</a>
                                 </li>
                                 <li>
                                     <a onClick={() => navigate("/transaction")}>Transaction</a>
                                 </li>
                                 <li>
-                                    <a onClick={() => navigate("/adminBoard")}>Admin Board</a>
+                                    <a onClick={() => navigate("/admin-board")}>Admin Board</a>
                                 </li>
                             </>
                         )}

@@ -1,45 +1,34 @@
-import { createBrowserRouter, type RouteObject, RouterProvider } from "react-router-dom";
+import {createBrowserRouter, type RouteObject, RouterProvider} from "react-router-dom";
 import './App.css';
-
-import Navbar from "./Navbar";
-import { UserBoard } from "./User/UserBoard";
-import { Purchase } from "./Purchase";
-import Users from './api/Users';
-import {Login}  from "./Login";
-import Admins from "./api/Admins";
+import {UserBoard} from "./Components/User/UserBoard";
+import {Purchase} from "./Components/User/Purchase.tsx";
+import {Login} from "./Components/Login.tsx";
 import Transactions from "./api/Transactions";
-import { Transaction } from "./Admin/Transaction";
-import AdminBoards from "./api/AdminBoards";
-import { AdminBoard } from "./Admin/AdminBoard";
-import { Overview } from "./Admin/Overview";
-
-// Home component must be defined before it is used in routes
-function Home() {
-    return (
-        <>
-            <Navbar title="Home" />
-            <div>
-                <Users />
-                <Admins />
-                <Transactions />
-                <AdminBoards />
-            </div>
-        </>
-    );
-}
+import {Transaction} from "./Components/Admin/Transaction";
+import {AdminBoard} from "./Components/Admin/AdminBoard";
+import {Overview} from "./Components/Admin/Overview";
+import {Home} from "./Components/Home.tsx";
+import {UserHome} from "./Components/User/UserHome.tsx";
+import {AdminHome} from "./Components/Admin/AdminHome.tsx";
 
 // Define routes
 const myRoutes: RouteObject[] = [
     {
         path: '/',
-        element: <Home />
+        element: <Home/>
+    },{
+        path: '/admin-home',
+        element: <AdminHome/>
+    },{
+        path: '/user-home',
+        element: <UserHome/>
     },
     {
-        path: '/userBoard',
+        path: '/user-board',
         element: <UserBoard />
     },
     {
-        path: '/adminBoard',
+        path: '/admin-board',
         element: <AdminBoard />
     },
     {

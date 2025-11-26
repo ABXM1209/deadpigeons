@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import Navbar from "./Navbar";
+import Navbar from "./Navbar.tsx";
 import { useSetAtom } from "jotai";
-import { userAtom } from "./authAtoms";
-import {finalUrl} from './baseUrl.ts'
+import { userAtom } from "../authAtoms.tsx";
+import {finalUrl} from '../baseUrl.ts'
 
 export function Login() {
     const navigate = useNavigate();
@@ -52,9 +52,9 @@ export function Login() {
 
             // Redirect based on role
             if (data.role === "admin") {
-                navigate("/");
+                navigate("/admin-home");
             } else {
-                navigate("/");
+                navigate("/user-home");
             }
         } catch (err) {
             console.error(err);

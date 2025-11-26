@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Navbar from "../Navbar";
+import Navbar from "../Navbar.tsx";
 
 export function AdminBoard() {
 
@@ -32,6 +32,9 @@ export function AdminBoard() {
         <>
             <Navbar title="Admin Board" />
 
+            <div className="week-label flex justify-center text-3xl font-bold m-5">
+                Week <span className="ml-2">43</span>
+            </div>
             {/* TOAST */}
             {showToast && (
                 <div className="toast toast-top toast-center z-50">
