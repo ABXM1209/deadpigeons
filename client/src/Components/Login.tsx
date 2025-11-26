@@ -95,7 +95,7 @@ export function Login() {
                         )}
 
                         <button
-                            className="btn btn-primary mt-5"
+                            className="btn btn-default btn-outline mt-5"
                             onClick={handleLogin}
                             disabled={loading}
                         >

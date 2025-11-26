@@ -10,16 +10,47 @@ import {Overview} from "./Components/Admin/Overview";
 import {Home} from "./Components/Home.tsx";
 import {UserHome} from "./Components/User/UserHome.tsx";
 import {AdminHome} from "./Components/Admin/AdminHome.tsx";
+import {UserList} from "./Components/Admin/UserList.tsx";
 
 // Define routes
 const myRoutes: RouteObject[] = [
     {
         path: '/',
         element: <Home/>
-    },{
+    },
+    {
+        path: '/login',
+        element: <Login />
+    },
+
+    {/* Admin Routes */},
+    {
         path: '/admin-home',
         element: <AdminHome/>
-    },{
+    },
+    {
+        path: '/admin-board',
+        element: <AdminBoard />
+    },
+    {
+        path: '/overview',
+        element: <Overview />
+    },
+    {
+        path: '/user-list',
+        element: <UserList/>
+    },
+    {
+        path: '/transaction',
+        element: <Transaction />
+    },
+    {
+        path: '/transactions',
+        element: <Transactions />
+    },
+
+    {/* User Routes */},
+    {
         path: '/user-home',
         element: <UserHome/>
     },
@@ -28,29 +59,9 @@ const myRoutes: RouteObject[] = [
         element: <UserBoard />
     },
     {
-        path: '/admin-board',
-        element: <AdminBoard />
-    },
-    {
         path: '/purchase',
         element: <Purchase />
     },
-    {
-        path: '/transactions',
-        element: <Transactions />
-    },
-    {
-        path: '/transaction',
-        element: <Transaction />
-    },
-    {
-        path: '/login',
-        element: <Login />
-    },
-    {
-        path: '/overview',
-        element: <Overview />
-    }
 ];
 
 function App() {

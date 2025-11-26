@@ -75,6 +75,9 @@ export default function Navbar({ title }: NavbarProps) {
                                 <li>
                                     <a onClick={() => navigate("/admin-board")}>Admin Board</a>
                                 </li>
+                                <li>
+                                    <a onClick={() => navigate("/user-list")}>User List</a>
+                                </li>
                             </>
                         )}
                     </ul>
