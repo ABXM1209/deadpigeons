@@ -3,6 +3,7 @@ import logo from "../assets/JerneIF-logo.png";
 import ThemeToggle from "./ThemeToggle.tsx";
 import { useAtom } from "jotai";
 import { userAtom } from "../authAtoms.tsx";
+import {useEffect, useState} from "react";
 
 type NavbarProps = {
     title: string;
@@ -11,8 +12,21 @@ type NavbarProps = {
 export default function Navbar({ title }: NavbarProps) {
     const navigate = useNavigate();
     const [user] = useAtom(userAtom); // Read the current user from Jotai
+    const [currentTime, setCurrentTime] = useState<string>("");
+
 
     const isAdmin = user?.role === "admin";
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = new Date();
+            setCurrentTime(
+                now.toLocaleString() // or toLocaleTimeString() if time only
+            );
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <div className="navbar bg-base-100 shadow-sm">
@@ -98,6 +112,17 @@ export default function Navbar({ title }: NavbarProps) {
 
             {/* Navbar end: theme toggle and login button */}
             <div className="navbar-end">
+                {/* Show balance only for users */}
+                {!isAdmin && user && (
+                    <div className="px-3 py-1 bg-base-200 rounded-lg shadow-sm">
+                        Balance: <span className="font-bold">{user.balance ?? 0}</span>
+                    </div>
+                )}
+                <div className="mr-5"></div>
+                {/* Real-time date & time */}
+                <div className="text-sm opacity-70">
+                    {currentTime}
+                </div>
                 <ThemeToggle />
                 <button
                     className="btn btn-ghost btn-circle hover:bg-base-200"
