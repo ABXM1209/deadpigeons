@@ -3,6 +3,7 @@ import { atomWithStorage } from "jotai/utils";
 export type User = {
     username: string;
     role: "user" | "admin";
+    balance?: number;
 } | null;
 
 // This atom will automatically persist in localStorage under the key "user"
