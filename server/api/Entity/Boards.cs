@@ -65,7 +65,7 @@ public class BoardsController : ControllerBase
         if (existingBoard == null)
             return NotFound($"Board with id {id} not found.");
 
-        // تحديث الحقول المطلوبة
+        // update fields
         existingBoard.Name = board.Name;
         existingBoard.Weeknumber = board.Weeknumber;
         existingBoard.Totalwinners = board.Totalwinners;

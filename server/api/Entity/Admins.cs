@@ -1,3 +1,4 @@
+using api.services;
 using efscaffold;
 using efscaffold.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +11,12 @@ namespace api.Entity;
 public class AdminsController : ControllerBase
 {
     private readonly MyDbContext _context;
+    private readonly IPasswordService _passwordService;
 
-    public AdminsController(MyDbContext context)
+    public AdminsController(MyDbContext context, IPasswordService passwordService)
     {
         _context = context;
+        _passwordService = passwordService;
     }
 
     // ----------------------
@@ -47,6 +50,10 @@ public class AdminsController : ControllerBase
         if (admin == null)
             return BadRequest("Admin is null.");
 
+        // ✅ Hash password before saving
+        if (!string.IsNullOrEmpty(admin.Password))
+            admin.Password = _passwordService.HashPassword(admin.Password);
+
         _context.Admins.Add(admin);
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetById), new { id = admin.Id }, admin);
@@ -65,10 +72,12 @@ public class AdminsController : ControllerBase
         if (existingAdmin == null)
             return NotFound($"Admin with id {id} not found.");
 
-        // updating fields
         existingAdmin.Name = admin.Name;
         existingAdmin.Email = admin.Email;
-        existingAdmin.Password = admin.Password;
+
+        // ✅ Hash password if updated
+        if (!string.IsNullOrEmpty(admin.Password))
+            existingAdmin.Password = _passwordService.HashPassword(admin.Password);
 
         _context.Admins.Update(existingAdmin);
         await _context.SaveChangesAsync();

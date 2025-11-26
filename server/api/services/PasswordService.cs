@@ -1,16 +1,25 @@
-﻿namespace api.services;
+﻿public interface IPasswordService
+{
+    string HashPassword(string password);
+    bool VerifyPassword(string password, string hashed);
+}
 
 public class PasswordService : IPasswordService
 {
-    // placeholder service
-    
     public string HashPassword(string password)
     {
-        return $"HASHED:{password}";
+        return BCrypt.Net.BCrypt.HashPassword(password);
     }
 
-    public bool VerifyPassword(string password, string hash)
+    public bool VerifyPassword(string password, string hashed)
     {
-        return hash == $"HASHED:{password}";
+        try
+        {
+            return BCrypt.Net.BCrypt.Verify(password, hashed);
+        }
+        catch (BCrypt.Net.SaltParseException)
+        {
+            return false; // hash is invalid
+        }
     }
 }

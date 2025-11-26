@@ -1,3 +1,4 @@
+using api.services;
 using efscaffold;
 using efscaffold.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +11,12 @@ namespace api.Entity;
 public class UsersController : ControllerBase
 {
     private readonly MyDbContext _context;
+    private readonly IPasswordService _passwordService;
 
-    public UsersController(MyDbContext context)
+    public UsersController(MyDbContext context, IPasswordService passwordService)
     {
         _context = context;
+        _passwordService = passwordService;
     }
 
     // ----------------------
@@ -47,6 +50,10 @@ public class UsersController : ControllerBase
         if (user == null)
             return BadRequest("User is null.");
 
+        // ✅ Hash password before saving
+        if (!string.IsNullOrEmpty(user.Password))
+            user.Password = _passwordService.HashPassword(user.Password);
+
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
@@ -65,13 +72,15 @@ public class UsersController : ControllerBase
         if (existingUser == null)
             return NotFound($"User with id {id} not found.");
 
-        // تحديث الحقول المطلوبة
         existingUser.Name = user.Name;
         existingUser.Phone = user.Phone;
         existingUser.Email = user.Email;
-        existingUser.Password = user.Password;
         existingUser.Balance = user.Balance;
         existingUser.Isactive = user.Isactive;
+
+        // ✅ Hash password if updated
+        if (!string.IsNullOrEmpty(user.Password))
+            existingUser.Password = _passwordService.HashPassword(user.Password);
 
         _context.Users.Update(existingUser);
         await _context.SaveChangesAsync();
