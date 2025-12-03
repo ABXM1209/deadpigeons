@@ -20,7 +20,7 @@ export function Login() {
 
         try {
             // Send POST request to backend
-            const res = await fetch(finalUrl + "api/Auth/login", {
+            const res = await fetch(finalUrl + "/api/Auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
@@ -44,8 +44,9 @@ export function Login() {
             }
 
             // Login successful
-            // data should contain: { username, role }
+            // data should contain: { userID, username, role }
             setUser({
+                userID: data.userID,
                 username: data.username,
                 role: data.role, // 'admin' or 'user'
             });

@@ -3,8 +3,14 @@ import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 
 import logo from "../assets/JerneIF-logo.png";
-import ThemeToggle from "./ThemeToggle.tsx";
-import { userAtom } from "../authAtoms.tsx";
+import ThemeToggle from "./ThemeToggle";
+import { userAtom, type User } from "../authAtoms";
+import { ApiClient } from "../api/apiClient";
+import { finalUrl } from '../baseUrl';
+
+
+const api = new ApiClient(finalUrl);
+
 
 type NavbarProps = {
     title: string;
@@ -30,9 +36,43 @@ export default function Navbar({ title }: NavbarProps) {
         const interval = setInterval(() => {
             setCurrentTime(new Date().toLocaleString());
         }, 1000);
-
+        console.log(user);
         return () => clearInterval(interval);
     }, []);
+
+    // Fetch user data from API
+    useEffect(() => {
+        if (!user) return; // Ensure user exists
+
+        const fetchUser = async () => {
+            try {
+                if (!user.userID) return;
+
+                // Fetch updated user info from API
+                const updatedUser: Partial<User> | null = await api.usersGET(user.userID);
+
+                if (updatedUser) {
+                    // Merge updated user data with existing user data
+                    setUser({
+                        userID: updatedUser.userID ?? user.userID,
+                        username: updatedUser.username ?? user.username,
+                        role: updatedUser.role ?? user.role,
+                        balance: updatedUser.balance ?? user.balance ?? 0,
+                    });
+                }
+            } catch (err) {
+                console.error("❌ Failed to fetch user from API:", err);
+            }
+        };
+
+        fetchUser(); // Call fetchUser immediately
+        const interval = setInterval(fetchUser, 10000); // Refresh user data every 10 seconds
+
+        return () => clearInterval(interval);
+
+    }, [user, setUser]);
+
+
 
     return (
         <div className="navbar bg-base-100 shadow-sm">
@@ -63,7 +103,7 @@ export default function Navbar({ title }: NavbarProps) {
                             className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
                         >
                             {/* User menu */}
-                            {!isAdmin && (
+                            {!isAdmin && user && (
                                 <>
                                     <li><a onClick={() => navigate("/user-home")}>Homepage</a></li>
                                     <li><a onClick={() => navigate("/user-board")}>Board</a></li>
@@ -72,7 +112,7 @@ export default function Navbar({ title }: NavbarProps) {
                             )}
 
                             {/* Admin menu */}
-                            {isAdmin && (
+                            {isAdmin && user && (
                                 <>
                                     <li><a onClick={() => navigate("/admin-home")}>Homepage</a></li>
                                     <li><a onClick={() => navigate("/overview")}>Overview</a></li>
