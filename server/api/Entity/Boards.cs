@@ -67,11 +67,11 @@ public class BoardsController : ControllerBase
 
         // update fields
         existingBoard.Name = board.Name;
-        existingBoard.Weeknumber = board.Weeknumber;
-        existingBoard.Totalwinners = board.Totalwinners;
-        existingBoard.Winningnumbers = board.Winningnumbers;
-        existingBoard.Winningusers = board.Winningusers;
-        existingBoard.Isopen = board.Isopen;
+        existingBoard.WeekNumber = board.WeekNumber;
+        existingBoard.TotalWinners = board.TotalWinners;
+        existingBoard.WinningNumbers = board.WinningNumbers;
+        existingBoard.WinningUsers = board.WinningUsers;
+        existingBoard.IsOpen = board.IsOpen;
 
         _context.Boards.Update(existingBoard);
         await _context.SaveChangesAsync();

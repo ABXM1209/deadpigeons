@@ -27,6 +27,7 @@ public class AuthController : ControllerBase
 
     public class LoginResponse
     {
+        public string UserID { get; set; }
         public string Username { get; set; }
         public string Role { get; set; }
         public string Token { get; set; }
@@ -64,6 +65,7 @@ public class AuthController : ControllerBase
             var token = _jwtService.GenerateToken(user.Email, "user");
             return Ok(new LoginResponse
             {
+                UserID =  user.Id,
                 Username = user.Email,
                 Role = "user",
                 Token = token
