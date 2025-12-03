@@ -7,7 +7,6 @@ import Transactions from "./api/Transactions";
 import {Transaction} from "./Components/Admin/Transaction";
 import {AdminBoard} from "./Components/Admin/AdminBoard";
 import {Overview} from "./Components/Admin/Overview";
-import {Home} from "./Components/Home.tsx";
 import {UserHome} from "./Components/User/UserHome.tsx";
 import {AdminHome} from "./Components/Admin/AdminHome.tsx";
 import {UserList} from "./Components/Admin/UserList.tsx";
@@ -16,10 +15,6 @@ import {UserList} from "./Components/Admin/UserList.tsx";
 const myRoutes: RouteObject[] = [
     {
         path: '/',
-        element: <Home/>
-    },
-    {
-        path: '/login',
         element: <Login />
     },
 
