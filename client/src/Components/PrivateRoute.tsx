@@ -10,15 +10,37 @@ interface PrivateRouteProps {
 
 const PrivateRoute = ({ allowedRoles, children }: PrivateRouteProps) => {
     const { role } = useAuth();
-    const location = useLocation(); // to remember attempted URL
+    const location = useLocation();
 
-    // If no user is logged in or role is not allowed
-    if (!role || !allowedRoles.includes(role)) {
-        // Redirect to AuthFailed page and keep attempted URL in state
-        return <Navigate to="/AuthFaild" replace state={{ from: location }} />;
+    // ------------------------------------
+    // 1️⃣ User NOT logged in → go to Login
+    // ------------------------------------
+    if (!role) {
+        return (
+            <Navigate
+                to="/"
+                replace
+                state={{ from: location }}
+            />
+        );
     }
 
-    // User is authorized
+    // ----------------------------------------------------
+    // 2️⃣ User logged in BUT does NOT have the right role
+    // ----------------------------------------------------
+    if (!allowedRoles.includes(role)) {
+        return (
+            <Navigate
+                to="/AuthFaild"
+                replace
+                state={{ from: location }}
+            />
+        );
+    }
+
+    // ------------------------------
+    // 3️⃣ User authorized → access OK
+    // ------------------------------
     return <>{children}</>;
 };
 

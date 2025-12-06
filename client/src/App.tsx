@@ -16,13 +16,29 @@ import { UserList } from "./Components/Admin/UserList";
 import PrivateRoute from "./Components/PrivateRoute";
 import { AuthFailed } from "./Components/AuthFailed";
 import { AuthContext, type UserRole } from "./Components/UserRole";
+import {useEffect, useState} from "react";
 
 // -----------------------------
 // AuthProvider using jotai userAtom
 // -----------------------------
-const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const user = useAtomValue(userAtom); // automatically reads from localStorage if present
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+
+    const user = useAtomValue(userAtom);
+
+    const [isAuthLoaded, setIsAuthLoaded] = useState(false);
+
+    useEffect(() => {
+        // delay rendering router until jotai loads from localStorage
+        setIsAuthLoaded(true);
+    }, []);
+
     const role: UserRole = user?.role || null;
+
+    if (!isAuthLoaded) {
+        return <div className="flex h-screen items-center justify-center">
+            <p className="text-xl">Loading...</p>
+        </div>;
+    }
 
     return (
         <AuthContext.Provider value={{ role }}>
@@ -35,6 +51,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 // App component
 // -----------------------------
 function App() {
+
     const routes: RouteObject[] = [
         { path: '/', element: <Login /> },
         { path: '/AuthFaild', element: <AuthFailed /> },

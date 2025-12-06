@@ -105,18 +105,35 @@ export function UserBoard() {
 
                     {/* Weeks selector (only visible when repeat = ON) */}
                     {repeat && (
-                        <div className="mt-3 flex items-center justify-between">
+                        <div className="mt-3 flex items-center justify-between w-full">
                             <span className="text-sm">Repeat for</span>
 
-                            <input
-                                type="number"
-                                className="input input-bordered input-sm w-24 text-center"
-                                value={repeatWeeks}
-                                onChange={(e) => {
-                                    const value = Number(e.target.value);
-                                    setRepeatWeeks(value < 1 ? 1 : value); // prevents negative
-                                }}
-                            />
+                            {/* Custom Stepper */}
+                            <div className="flex items-center gap-2">
+
+                                {/* Minus Button */}
+                                <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline"
+                                    onClick={() => setRepeatWeeks(prev => Math.max(1, prev - 1))}
+                                >
+                                    -
+                                </button>
+
+                                {/* Value Display */}
+                                <div className="px-4 py-1 rounded-lg bg-base-100 border border-base-300 text-center min-w-[40px]">
+                                    {repeatWeeks}
+                                </div>
+
+                                {/* Plus Button */}
+                                <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline"
+                                    onClick={() => setRepeatWeeks(prev => prev + 1)}
+                                >
+                                    +
+                                </button>
+                            </div>
 
                             <span className="text-sm">weeks</span>
                         </div>

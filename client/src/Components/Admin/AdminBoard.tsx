@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState} from "react";
 import Navbar from "../Navbar.tsx";
 
 export function AdminBoard() {
@@ -7,6 +7,8 @@ export function AdminBoard() {
     const [showToast, setShowToast] = useState(false);
 
     const max = 3;
+
+
 
     function toggle(n: number) {
         setSelected(prev => {
