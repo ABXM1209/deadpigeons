@@ -11,6 +11,8 @@ import { Transaction } from "./Components/Admin/Transaction";
 import { AdminBoard } from "./Components/Admin/AdminBoard";
 import { Overview } from "./Components/Admin/Overview";
 import { UserHome } from "./Components/User/UserHome";
+import { UserTransactionHistory } from "./Components/User/UserTransactionHistory";
+import { UserGameHistory } from "./Components/User/UserGameHistory";
 import { AdminHome } from "./Components/Admin/AdminHome";
 import { UserList } from "./Components/Admin/UserList";
 import PrivateRoute from "./Components/PrivateRoute";
@@ -68,6 +70,9 @@ function App() {
         { path: '/user-home', element: <PrivateRoute allowedRoles={["user"]}><UserHome /></PrivateRoute> },
         { path: '/user-board', element: <PrivateRoute allowedRoles={["user"]}><UserBoard /></PrivateRoute> },
         { path: '/purchase', element: <PrivateRoute allowedRoles={["user"]}><Purchase /></PrivateRoute> },
+        { path: '/user-transaction-history', element: <PrivateRoute allowedRoles={["user"]}><UserTransactionHistory /></PrivateRoute> },
+        { path: '/user-game-history', element: <PrivateRoute allowedRoles={["user"]}><UserGameHistory /></PrivateRoute> },
+
     ];
 
     return (

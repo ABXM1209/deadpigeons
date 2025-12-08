@@ -107,6 +107,8 @@ export default function Navbar({ title }: NavbarProps) {
                                     <li><a onClick={() => navigate("/user-home")}>Homepage</a></li>
                                     <li><a onClick={() => navigate("/user-board")}>Board</a></li>
                                     <li><a onClick={() => navigate("/purchase")}>Purchase</a></li>
+                                    <li><a onClick={() => navigate("/user-transaction-history")}>Transaction History</a></li>
+                                    <li><a onClick={() => navigate("/user-game-history")}>Game History</a></li>
                                 </>
                             )}
 
