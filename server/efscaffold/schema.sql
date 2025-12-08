@@ -2,6 +2,17 @@ DROP SCHEMA IF EXISTS deadpigeons CASCADE;
 CREATE SCHEMA IF NOT EXISTS deadpigeons;
 
 -- ======================
+-- Admins Table
+-- ======================
+CREATE TABLE deadpigeons.Admins
+(
+    id        text PRIMARY KEY NOT NULL,
+    name      text NOT NULL,
+    email     text NOT NULL,
+    password  text NOT NULL
+);
+
+-- ======================
 -- Users Table
 -- ======================
 CREATE TABLE deadpigeons.Users
@@ -31,17 +42,6 @@ CREATE TABLE deadpigeons.Boards
 );
 
 -- ======================
--- Admins Table
--- ======================
-CREATE TABLE deadpigeons.Admins
-(
-    id        text PRIMARY KEY NOT NULL,
-    name      text NOT NULL,
-    email     text NOT NULL,
-    password  text NOT NULL
-);
-
--- ======================
 -- Transactions Table
 -- ======================
 CREATE TABLE deadpigeons.Transactions
@@ -53,4 +53,16 @@ CREATE TABLE deadpigeons.Transactions
     status         int NOT NULL,
     balance        int NOT NULL,
     transactionDate timestamp NOT NULL
+);
+
+-- ======================
+-- BoardHistory Table
+-- ======================
+CREATE TABLE deadpigeons.BoardHistory
+(
+    id        text PRIMARY KEY NOT NULL,
+    userId    text NOT NULL REFERENCES deadpigeons.Users(id),
+    boardId   text NOT NULL REFERENCES deadpigeons.Boards(id),
+    won       boolean NOT NULL,
+    playedAt  timestamp NOT NULL
 );

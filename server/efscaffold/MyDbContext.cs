@@ -24,6 +24,8 @@ public partial class MyDbContext : DbContext
     public virtual DbSet<Transaction> Transactions { get; set; }
 
     public virtual DbSet<User> Users { get; set; } 
+    
+    public virtual DbSet<BoardHistory> BoardHistory { get; set; } 
 
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 {
@@ -54,6 +56,11 @@ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("users_pkey");
+        });
+        
+        modelBuilder.Entity<BoardHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("boardhistory_pkey");
         });
 
         OnModelCreatingPartial(modelBuilder);
