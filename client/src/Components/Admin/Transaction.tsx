@@ -1,5 +1,6 @@
-import { useState } from "react";
-import Navbar from "../Navbar.tsx";
+import { useEffect, useState } from "react";
+import Navbar from "../../Components/Navbar.tsx";
+import { ApiClient, Transaction as ApiTransaction } from "../../api/apiClient.ts";
 
 type TransactionType = {
     id: number;
@@ -10,35 +11,51 @@ type TransactionType = {
 };
 
 export function Transaction() {
+    const [transactions, setTransactions] = useState<TransactionType[]>([]);
     const [selected, setSelected] = useState<TransactionType | null>(null);
     const [search, setSearch] = useState("");
     const [filterStatus, setFilterStatus] = useState("all");
 
-    const mockData: TransactionType[] = [
-        { id: 10145398436, userId: 12, userName: "John Smith", status: "approved", balance: 50 },
-        { id: 10297685276, userId: 89, userName: "Maria Lopez", status: "pending", balance: 120 },
-        { id: 10376527012, userId: 44, userName: "Omar Saleh", status: "rejected", balance: 0 },
-        { id: 10407525021, userId: 22, userName: "Emily Clark", status: "approved", balance: 90 },
-        { id: 10507564663, userId: 66, userName: "Adam Cole", status: "pending", balance: 30 },
-    ];
+    // LOAD DATA FROM BACKEND
+    useEffect(() => {
+        const api = new ApiClient("http://localhost:5139");
 
-    // FILTERED + SEARCHED DATA
-    const filteredData = mockData.filter((t) => {
+        api.transactionsAll()
+            .then((data: ApiTransaction[]) => {
+                // ---- MAP BACKEND FIELDS TO UI FIELDS ----
+                const mapped: TransactionType[] = data.map((t) => ({
+                    id: Number(t.transactionid) || 0,
+                    userId: Number(t.id) || 0,
+                    userName: t.username ?? "Unknown",
+                    balance: Number(t.balance) || 0,
+                    status:
+                        t.status === 1
+                            ? "pending"
+                            : t.status === 2
+                                ? "approved"
+                                : "rejected",
+                }));
+                setTransactions(mapped);
+            })
+            .catch((err) => console.error("API error:", err));
+    }, []);
+
+    // FILTER + SEARCH
+    const filteredData = transactions.filter((t) => {
         const matchesSearch =
             t.id.toString().includes(search) ||
             t.userId.toString().includes(search) ||
             t.userName.toLowerCase().includes(search.toLowerCase());
 
-        const matchesStatus =
-            filterStatus === "all" ? true : t.status === filterStatus;
+        const matchesStatus = filterStatus === "all" ? true : t.status === filterStatus;
 
         return matchesSearch && matchesStatus;
     });
 
-    // SAVE HANDLER
+    // SAVE HANDLER (you will later replace this with real PATCH call)
     function handleSave() {
-        console.log("Saved:", selected);
-        alert("Saved!");
+        console.log("Saving transaction:", selected);
+        alert("Saved! (TODO: connect to backend update)");
     }
 
     return (
@@ -74,7 +91,10 @@ export function Transaction() {
                                     className="select select-bordered w-full text-lg"
                                     value={selected.status}
                                     onChange={(e) =>
-                                        setSelected({...selected, status: e.target.value as never})
+                                        setSelected({
+                                            ...selected,
+                                            status: e.target.value as "approved" | "pending" | "rejected"
+                                        })
                                     }
                                 >
                                     <option value="approved">Approved</option>
@@ -90,12 +110,14 @@ export function Transaction() {
                                     className="input input-bordered w-full text-lg"
                                     value={selected.balance}
                                     onChange={(e) =>
-                                        setSelected({...selected, balance: Number(e.target.value)})
+                                        setSelected({
+                                            ...selected,
+                                            balance: Number(e.target.value)
+                                        })
                                     }
                                 />
                             </div>
 
-                            {/* SAVE BUTTON */}
                             <div className="col-span-2">
                                 <button
                                     className="btn btn-default btn-outline mt-2"
@@ -110,7 +132,7 @@ export function Transaction() {
                     )}
                 </div>
 
-                {/* SEARCH + FILTER BAR */}
+                {/* SEARCH + FILTER */}
                 <div className="p-3 rounded-xl border border-base-content/10 bg-base-200 flex gap-5">
                     <input
                         type="text"
@@ -150,13 +172,11 @@ export function Transaction() {
                             <tr
                                 key={t.id}
                                 onClick={() => setSelected(t)}
-                                className={`
-                                    cursor-pointer
-                                    border-l-4
-                                    ${selected?.id === t.id
-                                    ? "bg-base-300 border-primary"
-                                    : "border-transparent hover:bg-base-200"}
-                                `}
+                                className={`cursor-pointer border-l-4 ${
+                                    selected?.id === t.id
+                                        ? "bg-base-300 border-primary"
+                                        : "border-transparent hover:bg-base-200"
+                                }`}
                             >
                                 <td className="border border-base-content/20">{t.id}</td>
                                 <td className="border border-base-content/20">{t.userId}</td>

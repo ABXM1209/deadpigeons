@@ -21,6 +21,7 @@ export default function Navbar({ title }: NavbarProps) {
     const location = useLocation();
 
     const [user, setUser] = useAtom(userAtom);
+
     const [currentTime, setCurrentTime] = useState("");
 
     const isLoginPage = location.pathname === "/";
@@ -55,6 +56,7 @@ export default function Navbar({ title }: NavbarProps) {
                     setUser({
                         userID: updatedUser.userID ?? user.userID,
                         username: updatedUser.username ?? user.username,
+                        email: updatedUser.email ?? user.email,
                         role: updatedUser.role ?? user.role,
                         balance: updatedUser.balance ?? user.balance ?? 0,
                     });

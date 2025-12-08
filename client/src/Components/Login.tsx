@@ -44,10 +44,11 @@ export function Login() {
             }
 
             // Login successful
-            // data should contain: { userID, username, role }
+            // data should contain: { userID, username, email ,role}
             setUser({
                 userID: data.userID,
                 username: data.username,
+                email: data.email,
                 role: data.role, // 'admin' or 'user'
             });
 

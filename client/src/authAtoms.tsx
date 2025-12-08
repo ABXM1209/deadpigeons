@@ -3,6 +3,8 @@ import { atomWithStorage } from "jotai/utils";
 export type User = {
     userID : string;
     username: string;
+    email: string;
+    phone?: string;
     role: "user" | "admin";
     balance?: number;
 } | null;

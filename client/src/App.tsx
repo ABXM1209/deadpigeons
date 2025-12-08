@@ -11,7 +11,7 @@ import { Transaction } from "./Components/Admin/Transaction";
 import { AdminBoard } from "./Components/Admin/AdminBoard";
 import { Overview } from "./Components/Admin/Overview";
 import { UserHome } from "./Components/User/UserHome";
-import { UserTransactionHistory } from "./Components/User/UserTransactionHistory";
+import UserTransactionHistory from "./Components/User/UserTransactionHistory";
 import { UserGameHistory } from "./Components/User/UserGameHistory";
 import { AdminHome } from "./Components/Admin/AdminHome";
 import { UserList } from "./Components/Admin/UserList";
