@@ -1088,13 +1088,15 @@ export interface IBoard {
 export class Transaction implements ITransaction {
     id?: string | undefined;
     username?: string | undefined;
+    userId?: string | undefined;
     transactionid?: string | undefined;
     status?: number;
     balance?: number;
+    transactionDate?: string | undefined;
 
     constructor(data?: ITransaction) {
         if (data) {
-            for (var property in data) {
+            for (const property in data) {
                 if (data.hasOwnProperty(property))
                     (this as any)[property] = (data as any)[property];
             }
@@ -1105,9 +1107,11 @@ export class Transaction implements ITransaction {
         if (_data) {
             this.id = _data["id"];
             this.username = _data["username"];
+            this.userId = _data["userId"];
             this.transactionid = _data["transactionid"];
             this.status = _data["status"];
             this.balance = _data["balance"];
+            this.transactionDate = _data["transactionDate"];
         }
     }
 
@@ -1122,12 +1126,25 @@ export class Transaction implements ITransaction {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
         data["username"] = this.username;
+        data["userId"] = this.userId;
         data["transactionid"] = this.transactionid;
         data["status"] = this.status;
         data["balance"] = this.balance;
+        data["transactionDate"] = this.transactionDate;
         return data;
     }
 }
+
+export interface ITransaction {
+    id?: string | undefined;
+    username?: string | undefined;
+    userId?: string | undefined;
+    transactionid?: string | undefined;
+    status?: number;
+    balance?: number;
+    transactionDate?: string | undefined;
+}
+
 
 export interface ITransaction {
     id?: string | undefined;
