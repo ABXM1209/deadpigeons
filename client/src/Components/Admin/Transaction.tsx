@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Navbar from "../../Components/Navbar.tsx";
 import { ApiClient, Transaction as ApiTransaction } from "../../api/apiClient.ts";
 
-const api = new ApiClient("http://localhost:5139");
+const api = new ApiClient("");
 
 // UI Model
 type TransactionType = {
