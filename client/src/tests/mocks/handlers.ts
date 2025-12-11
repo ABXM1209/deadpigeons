@@ -1,16 +1,17 @@
 ﻿import { http, HttpResponse } from "msw";
+import {finalUrl} from "../../baseUrl.ts";
 
 export const handlers = [
     
     // Users mock
-    http.get("http://localhost:5139/users", () => {
+    http.get(finalUrl + "/users", () => {
         return HttpResponse.json([
             { id: 1, name: "Alice", email: "alice@test.com", phone: "555", balance: 20 },
         ]);
     }),
     
     // AdminBoards mock
-    http.get("http://localhost:5139/board", () => {
+    http.get(finalUrl + "/board", () => {
         return HttpResponse.json([
             {
                 id: 1,
@@ -25,14 +26,14 @@ export const handlers = [
     }),
 
     // Admins mock
-    http.get("http://localhost:5139/admins", () => {
+    http.get(finalUrl + "/admins", () => {
         return HttpResponse.json([
             { id: 1, name: "AdminUser", email: "admin@test.com" }
         ]);
     }),
 
     // Transactions mock
-    http.get("http://localhost:5139/transactions", () => {
+    http.get(finalUrl + "/transactions", () => {
         return HttpResponse.json([
             {
                 id: 100,

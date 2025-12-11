@@ -2,10 +2,11 @@
 import Transactions from "../api/Transactions";
 import { http, HttpResponse } from "msw";
 import { server } from "./mocks/server";
+import {finalUrl} from "../baseUrl.ts";
 
 test("Transactions renders transaction table", async () => {
     server.use(
-        http.get("http://localhost:5139/transactions", () => {
+        http.get(finalUrl + "transactions", () => {
             return HttpResponse.json([
                 {
                     id: 999,

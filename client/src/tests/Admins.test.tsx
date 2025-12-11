@@ -2,10 +2,11 @@
 import Admins from "../api/Admins";
 import { http, HttpResponse } from "msw";
 import { server } from "./mocks/server";
+import {finalUrl} from "../baseUrl.ts";
 
 test("Admins renders admin list", async () => {
     server.use(
-        http.get("http://localhost:5139/admins", () => {
+        http.get(finalUrl + "/admins", () => {
             return HttpResponse.json([
                 { id: 55, name: "MasterAdmin", email: "master@admin.com" }
             ]);

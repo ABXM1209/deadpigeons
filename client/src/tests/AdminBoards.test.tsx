@@ -2,11 +2,12 @@
 import AdminBoards from "../api/AdminBoards";
 import { http, HttpResponse } from "msw";
 import { server } from "./mocks/server";
+import {finalUrl} from "../baseUrl.ts";
 
 test("AdminBoards renders board data correctly", async () => {
 
     server.use(
-        http.get("http://localhost:5139/board", () => {
+        http.get(finalUrl + "/board", () => {
             return HttpResponse.json([
                 {
                     id: 10,
