@@ -17,11 +17,11 @@ export function Purchase() {
         }
 
         const purchaseDto = {
-            id: "6",
+            id: "8",
             username: user.username,
             userId: user.userID,
             transactionId: transactionField,
-            status: 0,
+            status: 1,
             balance: user.balance,
             transactionDate: new Date().toISOString()
         };

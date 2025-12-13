@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useAtom } from "jotai";
+import { userAtom} from "../../authAtoms.tsx";
 import Navbar from "../../Components/Navbar.tsx";
 import { ApiClient, Transaction as ApiTransaction } from "../../api/apiClient.ts";
 import { finalUrl } from "../../baseUrl.ts";
@@ -41,32 +43,29 @@ export default function UserTransactionHistory() {
     const [filterStatus, setFilterStatus] = useState<"all" | "approved" | "pending" | "rejected">("all");
     const [loading, setLoading] = useState(true);
 
-    
-    const loggedInUserId = localStorage.getItem("userId");
+    const [user] = useAtom(userAtom);
 
     // -----------------------------
     // FETCH TRANSACTIONS
     // -----------------------------
     useEffect(() => {
-        setLoading(true);
+        if (!user) {
+            setLoading(false);
+            return;
+        }
 
+        setLoading(true);
         const api = new ApiClient(finalUrl);
 
         api.transactionsAll()
             .then((data: ApiTransaction[]) => {
-                let userTx: ApiTransaction[] = [];
-
-                if (loggedInUserId) {
-
-                    userTx = data.filter((t) => t.userId === loggedInUserId);
-                }
-
-
+                // فلترة معاملات المستخدم الحالي
+                const userTx = data.filter((t) => t.userId === user.userID);
                 setTransactions(userTx.map(mapApiToUserTransaction));
             })
             .catch((err) => console.error("API error:", err))
             .finally(() => setLoading(false));
-    }, [loggedInUserId]);
+    }, [user]);
 
     // -----------------------------
     // SEARCH + FILTER
@@ -84,7 +83,7 @@ export default function UserTransactionHistory() {
     // -----------------------------
     // RENDER
     // -----------------------------
-    if (!loggedInUserId) {
+    if (!user) {
         return (
             <>
                 <Navbar title="My Transactions" />
@@ -114,7 +113,7 @@ export default function UserTransactionHistory() {
                     <select
                         className="select select-bordered"
                         value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value as any)}
+                        onChange={(e) => setFilterStatus(e.target.value as never)}
                     >
                         <option value="all">All</option>
                         <option value="approved">Approved</option>
@@ -123,20 +122,19 @@ export default function UserTransactionHistory() {
                     </select>
                 </div>
 
-                {/* LOADING */}
+                {/* LOADING / NO DATA / TABLE */}
                 {loading ? (
                     <p className="text-center">Loading transactions...</p>
                 ) : filtered.length === 0 ? (
                     <p className="text-center">No transactions found.</p>
                 ) : (
-                    /* TABLE */
                     <div className="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
                         <table className="table w-full">
                             <thead>
                             <tr>
                                 <th className="border">Transaction ID</th>
                                 <th className="border">Username</th>
-                                <th className="border">Amount</th>
+                                <th className="border">Balance</th>
                                 <th className="border">Status</th>
                                 <th className="border">Date</th>
                             </tr>
