@@ -1,12 +1,13 @@
 import { ApiClient, Admin } from "./apiClient.ts";
 import { useEffect, useState } from "react";
+import {finalUrl} from "../baseUrl.ts";
 
 function Admins() {
 
     const [admins, setAdmins] = useState<Admin[]>([]);
 
     useEffect(() => {
-        const Admin = new ApiClient("http://localhost:5139");
+        const Admin = new ApiClient(finalUrl);
 
         Admin.adminsAll()
             .then((data: Admin[]) => {

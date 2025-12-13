@@ -50,6 +50,9 @@ export function Login() {
                 username: data.username,
                 email: data.email,
                 role: data.role, // 'admin' or 'user'
+                balance: data.balance,
+                isAcitve: data.isAcitve,
+                phone: data.phone,
             });
 
             // Redirect based on role
