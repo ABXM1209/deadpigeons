@@ -35,18 +35,6 @@ public class AdminBoardHistoryController : ControllerBase
         return Ok(entry);
     }
 
-    // GET: /api/adminboardhistory/admin/{adminId}
-    [HttpGet("admin/{adminId}")]
-    public async Task<IActionResult> GetByAdminId(string adminId)
-    {
-        var history = await _context.AdminBoardHistory
-            .Where(h => h.AdminId == adminId)
-            .OrderByDescending(h => h.Date)
-            .ToListAsync();
-
-        return Ok(history);
-    }
-
     // POST: /api/adminboardhistory
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AdminBoardHistory entry)
@@ -72,8 +60,8 @@ public class AdminBoardHistoryController : ControllerBase
             return NotFound($"AdminBoardHistory entry with id {id} not found.");
 
         existing.BoardId = entry.BoardId;
-        existing.AdminId = entry.AdminId;
-        existing.IsWinner = entry.IsWinner;
+        existing.TotalWinners = entry.TotalWinners;
+        existing.WinningUsers = entry.WinningUsers;
         existing.Date = entry.Date;
 
         _context.AdminBoardHistory.Update(existing);

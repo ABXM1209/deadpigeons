@@ -12,11 +12,11 @@ public class AdminBoardHistory
     [Column("boardid")]
     public string BoardId { get; set; } = null!;
 
-    [Column("adminid")]
-    public string AdminId { get; set; } = null!;
+    [Column("totalwinners")]
+    public int TotalWinners { get; set; }
 
-    [Column("iswinner")]
-    public bool IsWinner { get; set; }
+    [Column("winningusers")]
+    public string[] WinningUsers { get; set; } = null!;
 
     [Column("date")]
     public DateTime Date { get; set; }
