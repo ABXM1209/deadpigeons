@@ -1,10 +1,8 @@
 ﻿using Xunit;
-using efscaffold.Models;
 using DotNet.Testcontainers.Containers;
 using tests.Containers;
 
 namespace tests.Health;
-
 
 public class ContainerHealthTests : IClassFixture<PostgresFixture>
 {
@@ -16,15 +14,15 @@ public class ContainerHealthTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
-    public async Task PostgresContainer_IsRunning()
+    public void PostgresContainer_IsRunning()
     {
-        Assert.True(_fixture.Container.State == TestcontainersState.Running);
+        Assert.Equal(TestcontainersState.Running, _fixture.Container.State);
     }
 
     [Fact]
     public async Task Database_CanConnect()
     {
-        var canConnect = await _fixture.DbContext.Database.CanConnectAsync();
-        Assert.True(canConnect);
+        using var db = _fixture.CreateDbContext();
+        Assert.True(await db.Database.CanConnectAsync());
     }
 }

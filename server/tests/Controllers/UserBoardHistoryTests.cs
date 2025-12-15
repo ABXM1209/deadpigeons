@@ -1,30 +1,35 @@
 ﻿using api.Entity;
 using Xunit;
 using Microsoft.AspNetCore.Mvc;
-using api.Controllers;
-using api.services;
-using efscaffold.Models;
+using api;
+using Microsoft.Extensions.DependencyInjection;
 using tests.Containers;
-
+using efscaffold;
+using efscaffold.Models;
 
 namespace tests.Controllers;
 
-
 public class UserBoardHistoryTests : TestBase
 {
-    public UserBoardHistoryTests(PostgresFixture fixture) : base(fixture) {}
-
+    public UserBoardHistoryTests(
+        IServiceProvider services,
+        PostgresFixture fixture)
+        : base(services, fixture) { }
 
     [Fact]
     public async Task GetByUserId_ShouldReturnOrderedHistory()
     {
         var userId = "u1";
 
-        _fixture.DbContext.UserBoardHistory.AddRange(
-            new UserBoardHistory { UserId = userId, Date = DateTime.UtcNow.AddDays(-1) },
-            new UserBoardHistory { UserId = userId, Date = DateTime.UtcNow }
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
+
+        db.UserBoardHistory.AddRange(
+            new UserBoardHistory { UserId = userId, Date = DateTime.UtcNow },
+            new UserBoardHistory { UserId = userId, Date = DateTime.UtcNow.AddDays(-1) }
         );
-        await _fixture.DbContext.SaveChangesAsync();
+
+        await db.SaveChangesAsync();
 
         var controller = GetController<UserBoardHistoryController>();
         var result = await controller.GetByUserId(userId);
@@ -34,5 +39,4 @@ public class UserBoardHistoryTests : TestBase
 
         Assert.True(list[0].Date > list[1].Date);
     }
-
 }

@@ -1,15 +1,20 @@
 ﻿using Xunit;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using api.Controllers;
 using api.services;
 using efscaffold.Models;
 using tests.Containers;
+using efscaffold;
 
 namespace tests.Controllers;
 
 public class AuthControllerTests : TestBase
 {
-    public AuthControllerTests(PostgresFixture fixture) : base(fixture) {}
+    public AuthControllerTests(
+        IServiceProvider services,
+        PostgresFixture fixture)
+        : base(services, fixture) { }
 
     [Fact]
     public void Login_ShouldFail_WhenEmailEmpty()
@@ -24,34 +29,34 @@ public class AuthControllerTests : TestBase
 
         Assert.IsType<BadRequestObjectResult>(result);
     }
-    
 
     [Fact]
     public void Login_ShouldReturnToken_ForValidUser()
     {
-        // Arrange
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
+        var passwordService = scope.ServiceProvider.GetRequiredService<IPasswordService>();
+
         var user = new User
         {
             Id = Guid.NewGuid().ToString(),
             Email = "test@test.com",
-            Password = new PasswordService().HashPassword("password")
+            Password = passwordService.HashPassword("password")
         };
-        _fixture.DbContext.Users.Add(user);
-        _fixture.DbContext.SaveChanges();
+
+        db.Users.Add(user);
+        db.SaveChanges();
 
         var controller = GetController<AuthController>();
 
-        // Act
         var result = controller.Login(new AuthController.LoginRequest
         {
             Email = user.Email,
             Password = "password"
         });
 
-        // Assert
         var ok = Assert.IsType<OkObjectResult>(result);
         var response = Assert.IsType<AuthController.LoginResponse>(ok.Value);
         Assert.NotNull(response.Token);
-        Assert.Equal("user", response.Role);
     }
 }

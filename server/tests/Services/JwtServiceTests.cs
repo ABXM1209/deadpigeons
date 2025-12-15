@@ -11,7 +11,7 @@ public class JwtServiceTests
     {
         var jwt = new JwtService(new AppOptions
         {
-            JWTSecret = "TEST_SECRET_1234567890123456"
+            JWTSecret = "TEST_SECRET_12345678901234567890123456789012"
         });
 
         var token = jwt.GenerateToken("user", "admin");
