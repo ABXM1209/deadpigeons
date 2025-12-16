@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getMergedBoards } from "../Components/Admin/boardService.tsx";
 import { type MergedBoard } from "../Components/Admin/models.tsx";
-import {GuessingNumberAnimation} from "../Components/User/GuessingNumberAnimation.tsx";
+import {GuessingNumberAnimation} from "../Components/GuessingNumberAnimation.tsx";
 
 function AdminBoards() {
     const [boards, setBoards] = useState<MergedBoard[]>([]);

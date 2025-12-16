@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { userAtom } from "../../authAtoms";
 import Navbar from "../../Components/Navbar.tsx";
-import {GuessingNumberAnimation} from "./GuessingNumberAnimation.tsx";
+import {GuessingNumberAnimation} from "../GuessingNumberAnimation.tsx";
 
 // ---------------------------
 // TYPE DEFINITIONS
@@ -190,7 +190,7 @@ export function UserGameHistory() {
                                     <td
                                         className={r.isWinner ? "text-green-500 font-bold" : ""}
                                     >
-                                        {r.isWinner ? "Winner" : "Not a Winner"}
+                                        {r.isWinner ? "Winner" : "Not Winner"}
                                     </td>
                                     <td>{r.status}</td>
                                 </tr>
