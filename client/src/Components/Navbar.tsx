@@ -60,7 +60,7 @@ export default function Navbar({ title }: NavbarProps) {
                         role: updatedUser.role ?? user.role,
                         balance: updatedUser.balance ?? user.balance ?? 0,
                         phone: updatedUser.phone ?? user.phone ?? "",
-                        isActive: updatedUser.isAcitve ?? user.isActive ?? 0,
+                        isActive: updatedUser.isActive ?? user.isActive ?? 0,
                     });
                 }
             } catch (err) {

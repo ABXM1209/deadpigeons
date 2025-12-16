@@ -51,7 +51,7 @@ export function Login() {
                 email: data.email,
                 role: data.role, // 'admin' or 'user'
                 balance: data.balance,
-                isActive: data.isAcitve,
+                isActive: data.isActive,
                 phone: data.phone,
             });
 
