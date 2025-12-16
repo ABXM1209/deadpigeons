@@ -71,29 +71,31 @@ public class UsersController : ControllerBase
     // PUT: /api/users/{id}
     // ----------------------
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(string id, [FromBody] User user)
+    public async Task<IActionResult> Update(string id, [FromBody] UpdateUserDto dto)
     {
-        if (id != user.Id)
-            return BadRequest("Id mismatch.");
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
         var existingUser = await _context.Users.FindAsync(id);
         if (existingUser == null)
             return NotFound($"User with id {id} not found.");
 
-        existingUser.Name = user.Name;
-        existingUser.Phone = user.Phone;
-        existingUser.Email = user.Email;
-        existingUser.Balance = user.Balance;
-        existingUser.Isactive = user.Isactive;
+        existingUser.Name = dto.Name;
+        existingUser.Phone = dto.Phone;
+        existingUser.Email = dto.Email;
+        existingUser.Balance = dto.Balance;
+        existingUser.Isactive = dto.Isactive;
 
-        // ✅ Hash password if updated
-        if (!string.IsNullOrEmpty(user.Password))
-            existingUser.Password = _passwordService.HashPassword(user.Password);
+        // ✅ ONLY hash if user explicitly changed password
+        if (!string.IsNullOrWhiteSpace(dto.Password))
+        {
+            existingUser.Password = _passwordService.HashPassword(dto.Password);
+        }
 
-        _context.Users.Update(existingUser);
         await _context.SaveChangesAsync();
         return Ok(existingUser);
     }
+
 
     // ----------------------
     // DELETE: /api/users/{id}

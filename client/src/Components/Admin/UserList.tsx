@@ -3,18 +3,7 @@ import Navbar from "../Navbar";
 import {finalUrl} from "../../baseUrl.ts";
 import {ApiClient, User} from "../../api/apiClient.ts";
 
-/**
-type UserType = {
-    id?: string;
-    name?: string;
-    phone?: string;
-    email?: string;
-    password?: string;
-    balance?: number;
-    isactive?: boolean;
-};
 
-**/
 
 export function UserList() {
     const [users, setUsers] = useState<User[]>([]);
@@ -186,7 +175,21 @@ export function UserList() {
                                 </div>
                             )}
 
-
+                            {!isAddMode && (
+                                <div>
+                                    <label className="font-semibold">New Password (optional):</label>
+                                    <input
+                                        type="password"
+                                        className="input input-bordered w-full"
+                                        value={selected.password ?? ""}
+                                        onChange={(e) => {
+                                            const u = new User(selected);
+                                            u.password = e.target.value;
+                                            setSelected(u);
+                                        }}
+                                    />
+                                </div>
+                            )}
                             <div>
                                 <label className="font-semibold">Status:</label>
                                 <select
@@ -282,9 +285,12 @@ export function UserList() {
                             <tr
                                 key={u.id}
                                 onClick={() => {
-                                    setSelected(u);
-                                    setIsAddMode(   false);
+                                    const clean = new User(u);
+                                    clean.password = undefined;
+                                    setSelected(clean);
+                                    setIsAddMode(false);
                                 }}
+
                                 className={`
                                         cursor-pointer border-l-4
                                         ${selected?.id === u.id && !isAddMode
