@@ -1,250 +1,306 @@
-import { useEffect, useMemo, useState } from "react";
-import Navbar from "../Navbar";
+import { useEffect, useState, useCallback } from "react";
+import Navbar from "../../Components/Navbar.tsx";
 import { finalUrl } from "../../baseUrl";
-import {GuessingNumberAnimation} from "../User/GuessingNumberAnimation.tsx";
-
-const PAGE_SIZE = 5;
-
-type User = {
-    id?: string;
-    name?: string;
-    email?: string;
-    phone?: string;
-    isactive?: boolean;
-};
-
-type UserBoard = {
-    id?: string;
-    userId?: string;
-    boardId?: string;
-    guessingNumbers?: number[];
-};
-
-type AdminBoardHistory = {
-    id?: string;
-    boardId?: string;
-    totalWinners?: number;
-    winningUsers?: string[];
-    date?: string;
-};
+import { GuessingNumberAnimation } from "../GuessingNumberAnimation.tsx";
+import { Toast } from "../../utils/Toast.tsx";
+import { Pagination } from "../../utils/Pagination.tsx";
 
 type AdminBoard = {
     id: string;
     boardId: string;
     winningNumbers: number[];
-};
-
-type PlayerBoard = {
-    boardId: string;
-    selectedNumbers: number[];
-    winningNumbers: number[];
-    isWinner: boolean;
-};
-
-type PlayerBoards = {
-    user: User;
-    boards: PlayerBoard[];
+    weekNumber: number;
+    totalWinners?: number;
 };
 
 type Board = {
     id: string;
-    isOpen: boolean;
     weekNumber: number;
+    isOpen: boolean;
+};
+
+type UserBoard = {
+    id: string;
+    boardId: string;
+    userId: string;
+    guessingNumbers: number[];
+};
+
+type User = {
+    id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+};
+
+type MergedBoard = Board & {
+    winningNumbers: number[];
+    totalPlayers: number;
+    totalWinners: number;
+    status: string;
 };
 
 export function Overview() {
-    const [users, setUsers] = useState<User[]>([]);
-    const [userBoards, setUserBoards] = useState<UserBoard[]>([]);
-    const [boardHistory, setBoardHistory] = useState<AdminBoardHistory[]>([]);
     const [adminBoards, setAdminBoards] = useState<AdminBoard[]>([]);
     const [boards, setBoards] = useState<Board[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [pageByUser, setPageByUser] = useState<Record<string, number>>({});
+    const [userBoards, setUserBoards] = useState<UserBoard[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
+    const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
+    const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+    const [searchText, setSearchText] = useState("");
+    type WinnerFilterType = "All" | "Winner" | "Loser" | "Unknown";
+    const [winnerFilter, setWinnerFilter] = useState<WinnerFilterType>("All");
 
-    useEffect(() => {
-        Promise.all([
-            fetch(`${finalUrl}/api/Users`).then((r) => r.json()),
-            fetch(`${finalUrl}/api/UserBoard`).then((r) => r.json()),
-            fetch(`${finalUrl}/api/AdminBoardHistory`).then((r) => r.json()),
-            fetch(`${finalUrl}/api/Board`).then((r) => r.json()),
-            fetch(`${finalUrl}/api/AdminBoard`).then((r) => r.json()), // لجلب winningNumbers
-        ])
-            .then(([usersRes, userBoardsRes, boardHistoryRes, boardsRes, adminBoardsRes]) => {
-                setUsers(usersRes ?? []);
-                setUserBoards(userBoardsRes ?? []);
-                setBoardHistory(boardHistoryRes ?? []);
-                setBoards(boardsRes ?? []);
-                setAdminBoards(adminBoardsRes ?? []);
-            })
-            .catch((err) => console.error("Fetch error:", err))
-            .finally(() => setLoading(false));
-    }, []);
+    // Pagination
+    const [boardsPage, setBoardsPage] = useState(1);
+    const [playersPage, setPlayersPage] = useState(1);
+    const itemsPerPage = 5;
 
-    // ================= Boards Overview =================
-    const boardsOverview = useMemo(() => {
-        return boardHistory.map((b) => {
-            const boardStatus: Board | undefined = boards.find((bo) => String(bo.id) === String(b.boardId));
-            return {
-                boardId: b.boardId ?? "-",
-                totalWinners: b.totalWinners ?? 0,
-                winningUsers: b.winningUsers ?? [],
-                date: b.date,
-                status: boardStatus?.isOpen !== undefined ? (boardStatus.isOpen ? "Open" : "Closed") : "Unknown",
-            };
-        });
-    }, [boardHistory, boards]);
+    const showToast = (message: string, type: "success" | "error") => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 2500);
+    };
 
-    // ================= Players Boards =================
-    const playersData: PlayerBoards[] = useMemo(() => {
-        return users.map((user) => {
-            const playedBoards = userBoards.filter((ub) => ub.userId === user.id);
+    const fetchData = useCallback(async () => {
+        try {
+            const [resAdminBoard, resBoards, resUserBoards, resUsers] = await Promise.all([
+                fetch(`${finalUrl}/api/AdminBoard`),
+                fetch(`${finalUrl}/api/Board`),
+                fetch(`${finalUrl}/api/UserBoard`),
+                fetch(`${finalUrl}/api/Users`),
+            ]);
 
-            const boardsMapped: PlayerBoard[] = playedBoards.map((pb) => {
-                const adminBoard = adminBoards.find((ab) => String(ab.boardId) === String(pb.boardId));
-                const winningNumbers = adminBoard?.winningNumbers ?? [];
-                const selectedNumbers = pb.guessingNumbers ?? [];
-                const isWinner = winningNumbers.every((n) => selectedNumbers.includes(n)); 
+            const [adminBoardsData, boardsData, userBoardsData, usersData]: [
+                AdminBoard[],
+                Board[],
+                UserBoard[],
+                User[]
+            ] = await Promise.all([
+                resAdminBoard.json(),
+                resBoards.json(),
+                resUserBoards.json(),
+                resUsers.json(),
+            ]);
 
-                return {
-                    boardId: pb.boardId ?? "-",
-                    selectedNumbers,
-                    winningNumbers,
-                    isWinner,
-                };
+            // Compute total winners per board
+            const updatedAdminBoards = adminBoardsData.map((ab: AdminBoard) => {
+                const boardUserBoards = userBoardsData.filter((ub: UserBoard) => ub.boardId === ab.boardId);
+                const totalWinners = boardUserBoards.filter((ub: UserBoard) =>
+                    ab.winningNumbers.every((n: number) => ub.guessingNumbers.includes(n))
+                ).length;
+                return { ...ab, totalWinners };
             });
 
-            return { user, boards: boardsMapped };
-        });
-    }, [users, userBoards, adminBoards]);
+            setAdminBoards(updatedAdminBoards);
+            setBoards(boardsData);
+            setUserBoards(userBoardsData);
+            setUsers(usersData);
 
-    if (loading) {
-        return (
-            <>
-                <Navbar title="Overview" />
-                <div className="flex justify-center mt-10">
-                    <span className="loading loading-lg" />
-                </div>
-            </>
+            // Update backend totalWinners using PUT
+            await Promise.all(
+                updatedAdminBoards.map((ab: AdminBoard) =>
+                    fetch(`${finalUrl}/api/AdminBoard/${ab.id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(ab),
+                    })
+                )
+            );
+        } catch (err) {
+            console.error(err);
+            showToast("Failed to load overview data", "error");
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchData().catch(console.error);
+    }, [fetchData]);
+
+    // Merge data for Boards Overview display
+    const mergedBoards: MergedBoard[] = boards.map((b: Board) => {
+        const adminBoard = adminBoards.find((ab: AdminBoard) => ab.boardId === b.id);
+        const boardUserBoards = userBoards.filter((ub: UserBoard) => ub.boardId === b.id);
+        const totalPlayers = boardUserBoards.length;
+        const totalWinners = adminBoard?.totalWinners || 0;
+
+        return {
+            ...b,
+            winningNumbers: adminBoard?.winningNumbers || [],
+            totalPlayers,
+            totalWinners,
+            status: b.isOpen ? "Open" : "Closed",
+        };
+    });
+
+    // Boards pagination
+    const boardsTotalPages = Math.ceil(mergedBoards.length / itemsPerPage);
+    const boardsToDisplay = mergedBoards.slice((boardsPage - 1) * itemsPerPage, boardsPage * itemsPerPage);
+
+    // Players for selected board
+    const selectedBoardPlayersAll = selectedBoardId
+        ? userBoards
+            .filter((ub: UserBoard) => ub.boardId === selectedBoardId)
+            .map((ub: UserBoard & { userName?: string; winnerStatus?: WinnerFilterType }) => {
+                const user = users.find((u: User) => u.id === ub.userId);
+                const adminBoard = adminBoards.find((ab: AdminBoard) => ab.boardId === selectedBoardId);
+                const winningNumbers = adminBoard?.winningNumbers || [];
+                let winnerStatus: WinnerFilterType;
+                if (!winningNumbers.length) winnerStatus = "Unknown";
+                else winnerStatus = winningNumbers.every((n: number) => ub.guessingNumbers.includes(n))
+                    ? "Winner"
+                    : "Loser";
+                return { ...ub, userName: user?.name || "Unknown", winnerStatus };
+            })
+        : [];
+
+    // Filtered by search and winner
+    const selectedBoardPlayers = selectedBoardPlayersAll
+        .filter(
+            (ub) =>
+                (ub.userName!.toLowerCase().includes(searchText.toLowerCase()) ||
+                    ub.userId.toLowerCase().includes(searchText.toLowerCase())) &&
+                (winnerFilter === "All" || ub.winnerStatus === winnerFilter)
         );
-    }
+
+    // Players pagination
+    const playersTotalPages = Math.ceil(selectedBoardPlayers.length / itemsPerPage);
+    const playersToDisplay = selectedBoardPlayers.slice((playersPage - 1) * itemsPerPage, playersPage * itemsPerPage);
+
+    // Count for filter
+    const winnerCount = selectedBoardPlayersAll.filter((p) => p.winnerStatus === "Winner").length;
+    const loserCount = selectedBoardPlayersAll.filter((p) => p.winnerStatus === "Loser").length;
+    const unknownCount = selectedBoardPlayersAll.filter((p) => p.winnerStatus === "Unknown").length;
+    const totalCount = selectedBoardPlayersAll.length;
 
     return (
         <>
             <Navbar title="Overview" />
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-            {/* ================= BOARDS OVERVIEW ================= */}
+            {/* Boards Overview */}
             <div className="m-5 p-5 rounded-xl bg-base-200">
                 <h2 className="text-2xl font-bold mb-4 text-center">Boards Overview</h2>
                 <div className="overflow-x-auto">
-                    <table className="table">
+                    <table className="table table-zebra">
                         <thead>
                         <tr>
                             <th>Board ID</th>
-                            <th>Total Winners</th>
-                            <th>Winning Users</th>
+                            <th>Week Number</th>
+                            <th>Winning Numbers</th>
                             <th>Status</th>
-                            <th>Date</th>
+                            <th>Total Players</th>
+                            <th>Total Winners</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {boardsOverview.map((b) => (
-                            <tr key={b.boardId} className="hover:bg-base-300">
-                                <td>{b.boardId}</td>
+                        {boardsToDisplay.map((b: MergedBoard) => (
+                            <tr
+                                key={b.id}
+                                className="hover:bg-base-300 cursor-pointer"
+                                onClick={() => {
+                                    setSelectedBoardId(b.id);
+                                    setPlayersPage(1); // reset players page
+                                }}
+                            >
+                                <td>{b.id}</td>
+                                <td>{b.weekNumber}</td>
+                                <td>
+                                    <GuessingNumberAnimation guessingNumbers={b.winningNumbers} />
+                                </td>
+                                <td className={b.status === "Open" ? "text-success font-bold" : "text-error font-bold"}>
+                                    {b.status}
+                                </td>
+                                <td>{b.totalPlayers}</td>
                                 <td>{b.totalWinners}</td>
-                                <td>{b.winningUsers.length > 0 ? b.winningUsers.join(", ") : "-"}</td>
-                                <td>{b.status}</td>
-                                <td>{b.date ? new Date(b.date).toLocaleString() : "-"}</td>
                             </tr>
                         ))}
                         </tbody>
                     </table>
                 </div>
+
+                {/* Boards Pagination */}
+                <Pagination currentPage={boardsPage} totalPages={boardsTotalPages} onPageChange={setBoardsPage} />
             </div>
 
-            {/* ================= BOARDS PER PLAYER ================= */}
-            <div className="m-5 space-y-6">
-                <h2 className="text-3xl font-bold text-center">Boards Per Player</h2>
+            {/* Players for Board */}
+            {selectedBoardId && (
+                <div className="m-5 p-5 rounded-xl bg-base-100">
+                    <h2 className="text-2xl font-bold mb-4 text-center">Players for Board {selectedBoardId}</h2>
 
-                {playersData.map(({ user, boards }) => {
-                    const currentPage = pageByUser[user.id ?? ""] ?? 1;
-                    const start = (currentPage - 1) * PAGE_SIZE;
-                    const pagedBoards = boards.slice(start, start + PAGE_SIZE);
-                    const totalPages = Math.ceil(boards.length / PAGE_SIZE);
-                    const winningCount = boards.filter((b) => b.isWinner).length;
+                    {/* Filter bar */}
+                    <div className="flex gap-2 mb-4 items-center">
+                        <input
+                            type="text"
+                            placeholder="Search by player name or ID..."
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            className="input input-bordered w-full"
+                        />
 
-                    return (
-                        <div key={user.id} className="bg-base-200 rounded-xl p-5">
-                            <div className="flex justify-between items-center mb-3">
-                                <h3 className="text-xl font-semibold">
-                                    {user.name} — <span className="opacity-70">{winningCount} board(s) won</span>
-                                </h3>
-                                <span className="badge badge-outline">{boards.length} played</span>
-                            </div>
+                        <select
+                            className="select select-bordered"
+                            value={winnerFilter}
+                            onChange={(e) => setWinnerFilter(e.target.value as WinnerFilterType)}
+                        >
+                            <option value="All">All ({totalCount})</option>
+                            <option value="Winner">Winner ({winnerCount})</option>
+                            <option value="Loser">Loser ({loserCount})</option>
+                            <option value="Unknown">Unknown ({unknownCount})</option>
+                        </select>
+                    </div>
 
-                            {boards.length === 0 ? (
-                                <p className="opacity-70">No boards this week.</p>
-                            ) : (
-                                <>
-                                    <div className="overflow-x-auto">
-                                        <table className="table">
-                                            <thead>
-                                            <tr>
-                                                <th>Board ID</th>
-                                                <th>Selected Numbers</th>
-                                                <th>Winning Numbers</th>
-                                                <th>Winner?</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {pagedBoards.map((b, idx) => (
-                                                <tr key={idx} className="hover:bg-base-300">
-                                                    <td>{b.boardId}</td>
-                                                    <td>{<GuessingNumberAnimation guessingNumbers={b.selectedNumbers} />}</td>
-                                                    <td>{<GuessingNumberAnimation guessingNumbers={b.winningNumbers} />}</td>
-                                                    <td>
-                                                        {b.isWinner ? (
-                                                            <span className="badge badge-soft badge-success">Winner</span>
-                                                        ) : (
-                                                            <span className="badge badge-ghost">Lost</span>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    {totalPages > 1 && (
-                                        <div className="flex justify-center mt-4 gap-2">
-                                            <button
-                                                className="btn btn-sm"
-                                                disabled={currentPage === 1}
-                                                onClick={() =>
-                                                    setPageByUser((p) => ({ ...p, [user.id ?? ""]: currentPage - 1 }))
-                                                }
-                                            >
-                                                Prev
-                                            </button>
-                                            <span className="px-3 py-1">
-                        {currentPage} / {totalPages}
-                      </span>
-                                            <button
-                                                className="btn btn-sm"
-                                                disabled={currentPage === totalPages}
-                                                onClick={() =>
-                                                    setPageByUser((p) => ({ ...p, [user.id ?? ""]: currentPage + 1 }))
-                                                }
-                                            >
-                                                Next
-                                            </button>
-                                        </div>
-                                    )}
-                                </>
+                    <div className="overflow-x-auto">
+                        <table className="table table-zebra">
+                            <thead>
+                            <tr>
+                                <th>Player Name</th>
+                                <th>Player ID</th>
+                                <th>Selected Numbers</th>
+                                <th>Winning Numbers</th>
+                                <th>Winner?</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {playersToDisplay.map((p) => (
+                                <tr key={p.id}>
+                                    <td>{p.userName}</td>
+                                    <td>{p.userId}</td>
+                                    <td>
+                                        <GuessingNumberAnimation guessingNumbers={p.guessingNumbers} />
+                                    </td>
+                                    <td>
+                                        <GuessingNumberAnimation
+                                            guessingNumbers={
+                                                adminBoards.find((ab) => ab.boardId === p.boardId)?.winningNumbers || []
+                                            }
+                                        />
+                                    </td>
+                                    <td>
+                                        {p.winnerStatus === "Unknown" ? (
+                                            "?"
+                                        ) : p.winnerStatus === "Winner" ? (
+                                            <span className="badge badge-success">Winner</span>
+                                        ) : (
+                                            <span className="badge badge-ghost">Lost</span>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                            {playersToDisplay.length === 0 && (
+                                <tr>
+                                    <td colSpan={5} className="text-center opacity-70">
+                                        No players found.
+                                    </td>
+                                </tr>
                             )}
-                        </div>
-                    );
-                })}
-            </div>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Players Pagination */}
+                    <Pagination currentPage={playersPage} totalPages={playersTotalPages} onPageChange={setPlayersPage} />
+                </div>
+            )}
         </>
     );
 }

@@ -9,7 +9,7 @@ import { Login } from "./Components/Login";
 import Transactions from "./api/Transactions";
 import { Transaction } from "./Components/Admin/Transaction";
 import { AdminBoard } from "./Components/Admin/AdminBoard";
-import { Overview } from "./Components/Admin/Overview";
+import  {Overview}  from "./Components/Admin/Overview";
 import { UserHome } from "./Components/User/UserHome";
 import UserTransactionHistory from "./Components/User/UserTransactionHistory";
 import { UserGameHistory } from "./Components/User/UserGameHistory";
