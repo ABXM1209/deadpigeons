@@ -1,94 +1,132 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAtom } from "jotai";
-import { userAtom} from "../../authAtoms.tsx";
+import { userAtom } from "../../authAtoms.tsx";
 import Navbar from "../../Components/Navbar.tsx";
 import { ApiClient, Transaction as ApiTransaction } from "../../api/apiClient.ts";
 import { finalUrl } from "../../baseUrl.ts";
+import { Pagination } from "../../utils/Pagination.tsx";
 
-// -----------------------------
+// ---------------------------------
 // TYPES
-// -----------------------------
-type UserTransactionType = {
+// ---------------------------------
+type UserTransaction = {
     id: string;
     username: string;
+    userId: string;
     transactionId: string;
     status: "approved" | "pending" | "rejected";
     balance: number;
     transactionDate: Date;
 };
 
-// -----------------------------
+// ---------------------------------
 // HELPERS
-// -----------------------------
-const mapApiToUserTransaction = (t: ApiTransaction): UserTransactionType => ({
-    id: t.id ?? "",
-    username: t.username ?? "Unknown",
-    transactionId: t.transactionid ?? "",
-    balance: Number(t.balance) || 0,
-    transactionDate: t.transactionDate ? new Date(t.transactionDate) : new Date(),
-    status:
-        t.status === 1
-            ? "pending"
-            : t.status === 2
+// ---------------------------------
+function mapApiTransaction(t: ApiTransaction): UserTransaction {
+    return {
+        id: t.id ?? "",
+        username: t.username ?? "Unknown",
+        userId: t.userId ?? "",
+        transactionId: t.transactionid ?? "",
+        balance: Number(t.balance ?? 0),
+        transactionDate: t.transactionDate
+            ? new Date(t.transactionDate)
+            : new Date(),
+        status:
+            t.status === 2
                 ? "approved"
-                : "rejected",
-});
+                : t.status === 1
+                    ? "pending"
+                    : "rejected",
+    };
+}
 
-// -----------------------------
+// ---------------------------------
 // COMPONENT
-// -----------------------------
+// ---------------------------------
 export default function UserTransactionHistory() {
-    const [transactions, setTransactions] = useState<UserTransactionType[]>([]);
-    const [search, setSearch] = useState("");
-    const [filterStatus, setFilterStatus] = useState<"all" | "approved" | "pending" | "rejected">("all");
-    const [loading, setLoading] = useState(true);
-
     const [user] = useAtom(userAtom);
 
-    // -----------------------------
-    // FETCH TRANSACTIONS
-    // -----------------------------
+    const [transactions, setTransactions] = useState<UserTransaction[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] =
+        useState<"all" | "approved" | "pending" | "rejected">("all");
+
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 5;
+
+    // ---------------------------------
+    // FETCH DATA
+    // ---------------------------------
     useEffect(() => {
-        if (!user) {
+        if (!user?.userID) {
             setLoading(false);
             return;
         }
 
-        setLoading(true);
         const api = new ApiClient(finalUrl);
+        setLoading(true);
 
         api.transactionsAll()
             .then((data: ApiTransaction[]) => {
-                // filtering current user transactions
-                const userTx = data.filter((t) => t.userId === user.userID);
-                setTransactions(userTx.map(mapApiToUserTransaction));
+                const userTransactions = data
+                    .filter((t) => t.userId === user.userID)
+                    .map(mapApiTransaction);
+
+                setTransactions(userTransactions);
             })
-            .catch((err) => console.error("API error:", err))
+            .catch((err) => {
+                console.error("Failed to load transactions:", err);
+            })
             .finally(() => setLoading(false));
     }, [user]);
 
-    // -----------------------------
-    // SEARCH + FILTER
-    // -----------------------------
-    const filtered = transactions.filter((t) => {
-        const matchesSearch =
-            t.transactionId.toLowerCase().includes(search.toLowerCase()) ||
-            t.username.toLowerCase().includes(search.toLowerCase());
+    // ---------------------------------
+    // FILTERED DATA
+    // ---------------------------------
+    const filteredData = useMemo(() => {
+        return transactions.filter((t) => {
+            const matchesSearch =
+                t.transactionId.toLowerCase().includes(search.toLowerCase()) ||
+                t.username.toLowerCase().includes(search.toLowerCase());
 
-        const matchesStatus = filterStatus === "all" ? true : t.status === filterStatus;
+            const matchesStatus =
+                statusFilter === "all" || t.status === statusFilter;
 
-        return matchesSearch && matchesStatus;
-    });
+            return matchesSearch && matchesStatus;
+        });
+    }, [transactions, search, statusFilter]);
 
-    // -----------------------------
+    // ---------------------------------
+    // PAGINATION
+    // ---------------------------------
+    const totalPages = Math.max(
+        1,
+        Math.ceil(filteredData.length / ITEMS_PER_PAGE)
+    );
+
+    const paginatedData = filteredData.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
+    // reset page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [search, statusFilter]);
+
+    // ---------------------------------
     // RENDER
-    // -----------------------------
+    // ---------------------------------
     if (!user) {
         return (
             <>
                 <Navbar title="My Transactions" />
-                <div className="m-3 p-3 rounded-xl bg-base-200 text-center text-red-500">
-                    User is not logged in. Please log in to view your transactions.
+                <div className="m-4 p-4 rounded-xl bg-base-200 text-center text-error">
+                    You must be logged in to view your transactions.
                 </div>
             </>
         );
@@ -98,22 +136,24 @@ export default function UserTransactionHistory() {
         <>
             <Navbar title="My Transactions" />
 
-            <div className="m-3 p-3 rounded-xl bg-base-200 flex flex-col gap-4">
+            <div className="m-4 p-4 rounded-xl bg-base-200 flex flex-col gap-4">
 
                 {/* SEARCH + FILTER */}
-                <div className="p-3 rounded-xl border border-base-content/10 bg-base-200 flex gap-5">
+                <div className="flex gap-4">
                     <input
                         type="text"
-                        placeholder="Search by ID or Username..."
-                        className="input input-bordered w-1/3"
+                        className="input input-bordered w-full"
+                        placeholder="Search by Transaction ID or Username..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
 
                     <select
                         className="select select-bordered"
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value as never)}
+                        value={statusFilter}
+                        onChange={(e) =>
+                            setStatusFilter(e.target.value as typeof statusFilter)
+                        }
                     >
                         <option value="all">All</option>
                         <option value="approved">Approved</option>
@@ -122,38 +162,48 @@ export default function UserTransactionHistory() {
                     </select>
                 </div>
 
-                {/* LOADING / NO DATA / TABLE */}
+                {/* CONTENT */}
                 {loading ? (
                     <p className="text-center">Loading transactions...</p>
-                ) : filtered.length === 0 ? (
-                    <p className="text-center">No transactions found.</p>
+                ) : filteredData.length === 0 ? (
+                    <p className="text-center opacity-70">
+                        No transactions found.
+                    </p>
                 ) : (
-                    <div className="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
-                        <table className="table w-full">
-                            <thead>
-                            <tr>
-                                <th className="border">Transaction ID</th>
-                                <th className="border">Username</th>
-                                <th className="border">Balance</th>
-                                <th className="border">Status</th>
-                                <th className="border">Date</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {filtered.map((t) => (
-                                <tr key={t.id} className="hover:bg-base-300">
-                                    <td className="border">{t.transactionId}</td>
-                                    <td className="border">{t.username}</td>
-                                    <td className="border">{t.balance.toLocaleString()} DKK</td>
-                                    <td className="border capitalize">{t.status}</td>
-                                    <td className="border">{t.transactionDate.toLocaleString()}</td>
+                    <>
+                        <div className="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
+                            <table className="table table-zebra">
+                                <thead>
+                                <tr>
+                                    <th>Transaction ID</th>
+                                    <th>Username</th>
+                                    <th>Balance</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
                                 </tr>
-                            ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                </thead>
+                                <tbody>
+                                {paginatedData.map((t) => (
+                                    <tr key={t.id} className="hover:bg-base-300">
+                                        <td>{t.transactionId}</td>
+                                        <td>{t.username}</td>
+                                        <td>{t.balance.toLocaleString()} DKK</td>
+                                        <td className="capitalize">{t.status}</td>
+                                        <td>{t.transactionDate.toLocaleString()}</td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
 
+                        {/* PAGINATION */}
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={setCurrentPage}
+                        />
+                    </>
+                )}
             </div>
         </>
     );

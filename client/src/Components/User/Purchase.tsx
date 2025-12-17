@@ -1,8 +1,18 @@
 import Navbar from "../Navbar.tsx";
 import { useState } from "react";
-import { userAtom} from "../../authAtoms";
+import { useAtom } from "jotai";
+import { userAtom } from "../../authAtoms";
 import { finalUrl } from "../../baseUrl.ts";
-import {useAtom} from "jotai";
+
+type SwaggerTransaction = {
+    id: string;
+    username: string;
+    userId: string;
+    transactionid: string;
+    status: number;
+    balance: number;
+    transactionDate: string;
+};
 
 export function Purchase() {
     const [user] = useAtom(userAtom);
@@ -11,44 +21,52 @@ export function Purchase() {
     const [error, setError] = useState<string | null>(null);
 
     async function handlePurchase() {
-        if (!user || !transactionField) {
+        if (!user) {
+            setError("User not logged in");
+            return;
+        }
+
+        if (!transactionField.trim()) {
             setError("Transaction ID is required");
             return;
         }
 
-        const purchaseDto = {
-            id: "8",
+        setLoading(true);
+        setError(null);
+
+        // 🔹 IMPORTANT: Swagger compatible body
+        const body: SwaggerTransaction = {
+            id: Date.now().toString(),
             username: user.username,
             userId: user.userID,
-            transactionId: transactionField,
+            transactionid: transactionField,
             status: 1,
-            balance: user.balance,
-            transactionDate: new Date().toISOString()
+            balance: Number(user.balance),
+            transactionDate: new Date().toISOString(),
         };
 
         try {
-            setLoading(true);
-            setError(null);
-
-            const response = await fetch(`${finalUrl}/api/transactions`, {
+            const res = await fetch(`${finalUrl}/api/Transactions`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
-                body: JSON.stringify(purchaseDto)
+                body: JSON.stringify(body),
             });
 
-            if (!response.ok) {
-                throw new Error("Failed to send transaction");
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || "Transaction failed");
             }
 
-
-            alert("Transaction sent successfully");
+            alert("Transaction submitted successfully ✅");
             setTransactionField("");
-
         } catch (err) {
-            // @ts-expect-error unknown
-            setError(err.message);
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Unknown error");
+            }
         } finally {
             setLoading(false);
         }
@@ -58,7 +76,7 @@ export function Purchase() {
         <>
             <Navbar title="Purchase" />
 
-            {/* Prices table */}
+            {/* Prices */}
             <div className="flex justify-center mt-7">
                 <table className="table border w-auto">
                     <tbody>
@@ -80,26 +98,20 @@ export function Purchase() {
 
             {/* Payment instructions */}
             <div className="flex justify-center m-5">
-                <div className="p-4 rounded-xl bg-base-200 text-center mt-4">
+                <div className="p-4 rounded-xl bg-base-200 text-center">
                     <p className="text-xl font-semibold">Payment Instructions</p>
-
                     <p className="text-sm text-gray-600 mt-2">
-                        Please send the payment through MobilePay and include your transaction ID.
+                        Send payment via MobilePay and include your Transaction ID
                     </p>
-
-                    <p className="mt-3 font-bold text-lg">
-                        Phone number: 12 34 56 78
-                    </p>
+                    <p className="mt-3 font-bold text-lg">Phone: 12 34 56 78</p>
                 </div>
             </div>
 
-            {/* Transaction ID input */}
+            {/* Transaction ID */}
             <div className="flex justify-center mt-5">
-                <div className="flex flex-col items-start w-full max-w-xs">
-                    <div className="text-xl font-bold mb-2">Transaction ID:</div>
-
-                    <label className="input w-full">
-                        <span className="label">#</span>
+                <div className="w-full max-w-xs">
+                    <label className="input input-bordered w-full">
+                        <span>#</span>
                         <input
                             type="text"
                             placeholder="Transaction ID"
@@ -108,20 +120,16 @@ export function Purchase() {
                         />
                     </label>
 
-                    <p className="text-sm text-gray-500 mt-2">
-                        You can find the transaction ID in MobilePay under the receipt.
-                    </p>
-
                     {error && (
                         <p className="text-red-500 text-sm mt-2">{error}</p>
                     )}
                 </div>
             </div>
 
-            {/* Submit button */}
+            {/* Submit */}
             <div className="flex justify-center mt-5">
                 <button
-                    className="btn btn-default btn-outline m-5 rounded-xl"
+                    className="btn btn-outline"
                     onClick={handlePurchase}
                     disabled={loading}
                 >

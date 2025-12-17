@@ -16,7 +16,6 @@ export function UserBoard() {
 
     const max = 8;
     const min = 5;
-
     const currentWeek = getCurrentWeek();
 
     const price = (() => {
@@ -53,7 +52,8 @@ export function UserBoard() {
             return;
         }
 
-        const payload = {
+        // 1️⃣ Post to UserBoard
+        const userBoardPayload = {
             id: uuidv4(),
             boardId,
             userId: user.userID,
@@ -62,16 +62,34 @@ export function UserBoard() {
             weekNumber: currentWeek
         };
 
-        try {
-            const res = await fetch(`${finalUrl}/api/UserBoard`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
+        // 2️⃣ Post to UserBoardHistory for tracking
+        const historyPayload = {
+            id: uuidv4(),
+            userId: user.userID,
+            boardId,
+            isWinner: false, // initially false, updated later if they win
+            date: new Date().toISOString()
+        };
 
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(`API error: ${res.status} ${text}`);
+        try {
+            // Post both requests in parallel
+            const [boardRes, historyRes] = await Promise.all([
+                fetch(`${finalUrl}/api/UserBoard`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(userBoardPayload)
+                }),
+                fetch(`${finalUrl}/api/UserBoardHistory`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(historyPayload)
+                })
+            ]);
+
+            if (!boardRes.ok || !historyRes.ok) {
+                const boardText = await boardRes.text();
+                const historyText = await historyRes.text();
+                throw new Error(`Board: ${boardRes.status} ${boardText}, History: ${historyRes.status} ${historyText}`);
             }
 
             showToast("Board submitted successfully!", "success");

@@ -26,10 +26,13 @@ function Transactions() {
     }, []);
 
     // 🔹 Filtered by search
+
     const filteredData = transactions.filter((t) =>
+        // @ts-expect-error t.id
         t.id.includes(search) ||
         t.username?.toLowerCase().includes(search.toLowerCase()) ||
         t.transactionid?.includes(search)
+
     );
 
     // 🔹 Pagination slice
