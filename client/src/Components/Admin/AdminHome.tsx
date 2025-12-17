@@ -17,14 +17,12 @@ export function AdminHome() {
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
-                            <h2 className="card-title">Admins</h2>
                             <Admins />
                         </div>
                     </div>
 
                     <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">
-                            <h2 className="card-title">Users</h2>
                             <Users />
                         </div>
                     </div>
@@ -33,7 +31,6 @@ export function AdminHome() {
                 {/* BOARDS SECTION */}
                 <div className="card bg-base-100 shadow-lg">
                     <div className="card-body">
-                        <h2 className="card-title">Boards</h2>
                         <AdminBoards />
                     </div>
                 </div>
@@ -41,7 +38,6 @@ export function AdminHome() {
                 {/* TRANSACTIONS SECTION */}
                 <div className="card bg-base-100 shadow-lg">
                     <div className="card-body">
-                        <h2 className="card-title">Transactions</h2>
                         <Transactions />
                     </div>
                 </div>
