@@ -9,6 +9,7 @@ using efscaffold;
 
 namespace tests.Controllers;
 
+[Collection("Postgres")]
 public class AuthControllerTests : TestBase
 {
     public AuthControllerTests(

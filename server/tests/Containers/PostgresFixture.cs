@@ -15,8 +15,6 @@ public class PostgresFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        TestcontainersSettings.ResourceReaperEnabled = false;
-
         Container = new TestcontainersBuilder<PostgreSqlTestcontainer>()
             .WithDatabase(new PostgreSqlTestcontainerConfiguration
             {

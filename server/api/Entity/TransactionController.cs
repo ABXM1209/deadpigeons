@@ -7,11 +7,11 @@ namespace api.Entity;
 
 [ApiController]
 [Route("api/[controller]")]
-public class Transactions : ControllerBase
+public class TransactionController : ControllerBase
 {
     private readonly MyDbContext _context;
 
-    public Transactions(MyDbContext context)
+    public TransactionController(MyDbContext context)
     {
         _context = context;
     }

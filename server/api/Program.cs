@@ -31,7 +31,7 @@ public class Program
         }
         //  Register AppOptions as singleton
         services.AddSingleton(appOptions);
-
+        services.AddScoped<IUserService, UserService>();
         services.AddDbContext<MyDbContext>(conf => { conf.UseNpgsql(appOptions.DbConnectionString);});
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IJwtService, JwtService>();
