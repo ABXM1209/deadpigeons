@@ -13,7 +13,6 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddSingleton<PostgresFixture>();
 
         services.AddScoped<MyDbContext>(sp =>
         {
@@ -30,8 +29,11 @@ public class Startup
             })
         );
 
-        // Controllers
+        services.AddScoped<IUserService, UserService>();
+
+        // Controllers (optional)
         services.AddScoped<AuthController>();
         services.AddScoped<UserBoardHistoryController>();
     }
+
 }

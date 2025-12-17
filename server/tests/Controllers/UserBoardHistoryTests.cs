@@ -9,6 +9,7 @@ using efscaffold.Models;
 
 namespace tests.Controllers;
 
+[Collection("Postgres")]
 public class UserBoardHistoryTests : TestBase
 {
     public UserBoardHistoryTests(

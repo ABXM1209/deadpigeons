@@ -4,6 +4,7 @@ using tests.Containers;
 
 namespace tests.Health;
 
+[Collection("Postgres")]
 public class ContainerHealthTests : IClassFixture<PostgresFixture>
 {
     private readonly PostgresFixture _fixture;

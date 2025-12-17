@@ -8,12 +8,12 @@ namespace api.Entity;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AdminsController : ControllerBase
+public class AdminController : ControllerBase
 {
     private readonly MyDbContext _context;
     private readonly IPasswordService _passwordService;
 
-    public AdminsController(MyDbContext context, IPasswordService passwordService)
+    public AdminController(MyDbContext context, IPasswordService passwordService)
     {
         _context = context;
         _passwordService = passwordService;
