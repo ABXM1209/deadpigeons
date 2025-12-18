@@ -1,6 +1,5 @@
 ﻿using api.services;
 using api.services.Dtos;
-using efscaffold.Models;
 using Microsoft.Extensions.DependencyInjection;
 using tests.Containers;
 using Xunit;

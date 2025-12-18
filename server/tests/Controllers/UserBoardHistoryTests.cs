@@ -1,7 +1,6 @@
 ﻿using api.Entity;
 using Xunit;
 using Microsoft.AspNetCore.Mvc;
-using api;
 using Microsoft.Extensions.DependencyInjection;
 using tests.Containers;
 using efscaffold;

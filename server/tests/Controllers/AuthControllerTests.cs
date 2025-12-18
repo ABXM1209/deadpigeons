@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using api.Controllers;
-using api.services;
 using efscaffold.Models;
 using tests.Containers;
 using efscaffold;

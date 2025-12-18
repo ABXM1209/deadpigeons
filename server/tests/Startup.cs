@@ -5,7 +5,6 @@ using tests.Containers;
 using api;
 using api.Entity;
 using api.Controllers;
-using tests.Controllers;
 
 namespace tests;
 
@@ -31,7 +30,7 @@ public class Startup
 
         services.AddScoped<IUserService, UserService>();
 
-        // Controllers (optional)
+        // Controllers
         services.AddScoped<AuthController>();
         services.AddScoped<UserBoardHistoryController>();
     }

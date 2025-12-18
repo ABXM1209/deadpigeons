@@ -1,10 +1,4 @@
 ﻿using Xunit;
-using Microsoft.AspNetCore.Mvc;
-using api.Controllers;
-using api.services;
-using efscaffold.Models;
-using tests.Containers;
-
 
 namespace tests.Services;
 
