@@ -34,6 +34,7 @@ export function AdminBoard() {
     const [adminHistory, setAdminHistory] = useState<AdminBoardHistoryType[]>([]);
     const [currentWeek, setCurrentWeek] = useState(getCurrentWeek());
     const max = 3;
+    const min = 0;
 
     function showToast(message: string, type: "success" | "error") {
         setToast({ message, type });
@@ -86,7 +87,7 @@ export function AdminBoard() {
         });
     };
 
-    const canSubmit = selected.length === max;
+    const canSubmit = selected.length === max || selected.length === min;
 
     const createOrUpdateBoard = async (board?: BoardType) => {
         try {
@@ -148,11 +149,20 @@ export function AdminBoard() {
             });
 
             // Close the board in Board table
-            await fetch(`${finalUrl}/api/Board/${boardId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...board, isOpen: false }),
-            });
+            if(selected.length === max) {
+                await fetch(`${finalUrl}/api/Board/${boardId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ...board, isOpen: false }),
+                });
+            }else if(selected.length === min) {
+                await fetch(`${finalUrl}/api/Board/${boardId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ...board, isOpen: true }),
+                });
+            }
+
 
             showToast("Winning numbers submitted!", "success");
             setCurrentBoard(adminPayload);
