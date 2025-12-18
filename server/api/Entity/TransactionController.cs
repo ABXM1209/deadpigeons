@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace api.Entity;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/transactions")]
 public class TransactionController : ControllerBase
 {
     private readonly MyDbContext _context;
