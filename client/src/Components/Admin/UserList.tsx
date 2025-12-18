@@ -1,240 +1,288 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
+import { v4 as uuidv4 } from "uuid";
 import Navbar from "../Navbar";
-import {finalUrl} from "../../baseUrl.ts";
-import {ApiClient, User} from "../../api/apiClient.ts";
+import { finalUrl } from "../../baseUrl.ts";
+import { Pagination } from "../../utils/Pagination.tsx";
 
-
+interface User {
+    id: string;
+    name: string;
+    phone: string;
+    email: string;
+    password?: string;
+    currentPassword: string; // hidden, used for PUT if admin didn't change
+    balance: number;
+    isactive: boolean;
+}
 
 export function UserList() {
     const [users, setUsers] = useState<User[]>([]);
     const [selected, setSelected] = useState<User | null>(null);
     const [isAddMode, setIsAddMode] = useState(false);
-
     const [search, setSearch] = useState("");
     const [filterStatus, setFilterStatus] = useState("all");
 
-    useEffect(() => {
-        const client = new ApiClient(finalUrl);
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
-        client.usersAll()
-            .then((data) => setUsers(data))
-            .catch((err) => console.error("API error:", err));
+    // ---------------------------
+    // FETCH USERS
+    // ---------------------------
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const res = await fetch(`${finalUrl}/api/Users`);
+                if (!res.ok) throw new Error("Failed to fetch users");
+                const data: User[] = await res.json();
+
+                const mapped: User[] = data.map(u => ({
+                    ...u,
+                    currentPassword: u.password ?? "",
+                    password: "",
+                }));
+
+                setUsers(mapped);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        fetchUsers();
     }, []);
 
-
+    // ---------------------------
     // SEARCH + FILTER
-    const filteredUsers = users.filter((u) => {
+    // ---------------------------
+    const filteredUsers = users.filter(u => {
         const matchesSearch =
-            (u.id ?? "").toString().includes(search) ||
-            (u.name ?? "").toLowerCase().includes(search.toLowerCase());
-
+            u.id.includes(search) || u.name.toLowerCase().includes(search.toLowerCase());
         const matchesStatus =
             filterStatus === "all"
                 ? true
                 : filterStatus === "active"
                     ? u.isactive
                     : !u.isactive;
-
         return matchesSearch && matchesStatus;
     });
 
-    // RESET + ENTER ADD MODE
-    function startAddMode() {
-        setSelected(
-            new User({
-                name: "",
-                phone: "",
-                email: "",
-                balance: 0,
-                isactive: false,
-            })
-        );
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    const paginatedUsers = filteredUsers.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    // ---------------------------
+    // SELECT USER
+    // ---------------------------
+    const selectUser = (u: User) => {
+        setSelected({ ...u });
+        setIsAddMode(false);
+    };
+
+    const startAddMode = () => {
+        setSelected({
+            id: "",
+            name: "",
+            phone: "",
+            email: "",
+            password: "",
+            currentPassword: "",
+            balance: 0,
+            isactive: true,
+        });
         setIsAddMode(true);
-    }
+    };
 
+    // ---------------------------
+    // SAVE USER
+    // ---------------------------
+    const handleSave = async () => {
+        if (!selected || !selected.id) return;
 
-    // SAVE EDITED USER
-    function handleSave() {
-        if (!selected?.id) return;
+        const payload = {
+            id: selected.id,
+            name: selected.name,
+            phone: selected.phone,
+            email: selected.email,
+            password: selected.password?.trim() ? selected.password : selected.currentPassword,
+            balance: selected.balance,
+            isactive: selected.isactive,
+        };
 
-        const client = new ApiClient(finalUrl);
+        try {
+            const res = await fetch(`${finalUrl}/api/Users/${selected.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
 
-        client.usersPUT(selected.id, selected)
-            .then((updated) => {
-                setUsers(users.map(u => u.id === updated.id ? updated : u));
-                setSelected(updated);
-            })
-            .catch(console.error);
-    }
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Failed to update user: ${text}`);
+            }
 
+            const updated: User = await res.json();
+            updated.currentPassword = updated.password ?? "";
+            updated.password = "";
 
-    // ADD NEW USER
-    function handleAdd() {
+            setUsers(users.map(u => (u.id === updated.id ? updated : u)));
+            setSelected(updated);
+            alert("User updated successfully!");
+        } catch (err) {
+            if (err instanceof Error) alert(err.message);
+            else console.error(err);
+        }
+    };
+
+    // ---------------------------
+    // ADD USER
+    // ---------------------------
+    const handleAdd = async () => {
         if (!selected) return;
 
-        if (!selected.password) {
+        if (!selected.password?.trim()) {
             alert("Password is required");
             return;
         }
 
-        const client = new ApiClient(finalUrl);
+        const payload = {
+            id: uuidv4(),
+            name: selected.name,
+            phone: selected.phone,
+            email: selected.email,
+            password: selected.password,
+            balance: selected.balance,
+            isactive: selected.isactive,
+        };
 
-        client.usersPOST(selected)
-            .then((created) => {
-                setUsers([...users, created]);
-                setSelected(null);
-                setIsAddMode(false);
-            })
-            .catch(console.error);
-    }
+        try {
+            const res = await fetch(`${finalUrl}/api/Users`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
 
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Failed to add user: ${text}`);
+            }
+
+            const newUser: User = await res.json();
+            newUser.currentPassword = newUser.password ?? "";
+            newUser.password = "";
+
+            setUsers([...users, newUser]);
+            setSelected(null);
+            setIsAddMode(false);
+            alert("User added successfully!");
+        } catch (err) {
+            if (err instanceof Error) alert(err.message);
+            else console.error(err);
+        }
+    };
+
+    // ---------------------------
+    // RENDER
+    // ---------------------------
     return (
         <>
             <Navbar title="User List" />
 
             <div className="m-3 p-3 rounded-xl bg-base-200 flex flex-col gap-4" style={{ minHeight: "80vh" }}>
-
                 {/* INFO BOX */}
                 <div className="p-4 rounded-xl border border-base-content/10 bg-base-200">
                     <div className="flex justify-between items-center mb-2">
                         <h2 className="text-xl font-bold">
                             {isAddMode ? "Add User" : selected ? "Edit User" : "User Details"}
                         </h2>
-
-                        <button
-                            className="btn btn-primary btn-sm"
-                            onClick={startAddMode}
-                        >
+                        <button className="btn btn-primary btn-sm" onClick={startAddMode}>
                             Add New User
                         </button>
                     </div>
 
                     {selected ? (
                         <div className="grid grid-cols-3 gap-5 text-lg">
-
                             <div>
                                 <label className="font-semibold">User ID:</label>
                                 <div>{isAddMode ? "Auto-generated" : selected.id}</div>
                             </div>
-
                             <div>
                                 <label className="font-semibold">Name:</label>
                                 <input
                                     type="text"
                                     className="input input-bordered w-full text-lg"
-                                    value={selected.name ?? ""}
-                                    onChange={(e) => {
-                                        const u = new User(selected);
-                                        u.name = e.target.value;
-                                        setSelected(u);
-                                    }}
+                                    value={selected.name}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                        setSelected(prev => prev ? { ...prev, name: e.target.value } : prev)
+                                    }
                                 />
                             </div>
-
                             <div>
                                 <label className="font-semibold">Phone:</label>
                                 <input
                                     type="text"
                                     className="input input-bordered w-full text-lg"
-                                    value={selected.phone ?? ""}
-                                    onChange={(e) => {
-                                        const u = new User(selected);
-                                        u.phone = e.target.value;
-                                        setSelected(u);
-                                    }}
+                                    value={selected.phone}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                        setSelected(prev => prev ? { ...prev, phone: e.target.value } : prev)
+                                    }
                                 />
                             </div>
-
                             <div>
                                 <label className="font-semibold">Email:</label>
                                 <input
                                     type="email"
                                     className="input input-bordered w-full text-lg"
-                                    value={selected.email ?? ""}
-                                    onChange={(e) => {
-                                        const u = new User(selected);
-                                        u.email = e.target.value;
-                                        setSelected(u);
-                                    }}
+                                    value={selected.email}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                        setSelected(prev => prev ? { ...prev, email: e.target.value } : prev)
+                                    }
                                 />
                             </div>
-
-                            {isAddMode && (
-                                <div>
-                                    <label className="font-semibold">Password:</label>
-                                    <input
-                                        type="password"
-                                        className="input input-bordered w-full text-lg"
-                                        value={selected.password ?? ""}
-                                        onChange={(e) => {
-                                            const u = new User(selected);
-                                            u.password = e.target.value;
-                                            setSelected(u);
-                                        }}
-                                    />
-                                </div>
-                            )}
-
-                            {!isAddMode && (
-                                <div>
-                                    <label className="font-semibold">New Password (optional):</label>
-                                    <input
-                                        type="password"
-                                        className="input input-bordered w-full"
-                                        value={selected.password ?? ""}
-                                        onChange={(e) => {
-                                            const u = new User(selected);
-                                            u.password = e.target.value;
-                                            setSelected(u);
-                                        }}
-                                    />
-                                </div>
-                            )}
+                            <div>
+                                <label className="font-semibold">{isAddMode ? "Password" : "New Password (optional)"}</label>
+                                <input
+                                    type="password"
+                                    className="input input-bordered w-full"
+                                    value={selected.password}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                        setSelected(prev => prev ? { ...prev, password: e.target.value } : prev)
+                                    }
+                                />
+                            </div>
                             <div>
                                 <label className="font-semibold">Status:</label>
                                 <select
                                     className="select select-bordered w-full text-lg"
                                     value={selected.isactive ? "active" : "inactive"}
-                                    onChange={(e) => {
-                                        const u = new User(selected);
-                                        u.isactive = e.target.value === "active";
-                                        setSelected(u);
-                                    }
+                                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                                        setSelected(prev => prev ? { ...prev, isactive: e.target.value === "active" } : prev)
                                     }
                                 >
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
                             </div>
-
                             <div>
                                 <label className="font-semibold">Balance:</label>
                                 <input
                                     type="number"
                                     className="input input-bordered w-full text-lg"
-                                    value={selected.balance ?? ""}
-                                    onChange={(e) => {
-                                        const u = new User(selected);
-                                        u.balance = Number(e.target.value);
-                                        setSelected(u);
-                                    }}
+                                    value={selected.balance}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                        setSelected(prev => prev ? { ...prev, balance: Number(e.target.value) } : prev)
+                                    }
                                 />
                             </div>
-
                             <div className="col-span-2">
-                                {/* ADD OR SAVE BUTTON */}
                                 {isAddMode ? (
-                                    <button
-                                        className="btn btn-success mt-2"
-                                        onClick={handleAdd}
-                                    >
+                                    <button className="btn btn-success mt-2" onClick={handleAdd}>
                                         Add User
                                     </button>
                                 ) : (
-                                    <button
-                                        className="btn btn-default btn-outline mt-2"
-                                        onClick={handleSave}
-                                    >
+                                    <button className="btn btn-default btn-outline mt-2" onClick={handleSave}>
                                         Save Changes
                                     </button>
                                 )}
@@ -252,13 +300,12 @@ export function UserList() {
                         placeholder="Search by ID or Name..."
                         className="input input-bordered w-1/3"
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
                     />
-
                     <select
                         className="select select-bordered"
                         value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterStatus(e.target.value)}
                     >
                         <option value="all">All</option>
                         <option value="active">Active</option>
@@ -279,24 +326,16 @@ export function UserList() {
                             <th className="border border-base-content/20">Balance</th>
                         </tr>
                         </thead>
-
                         <tbody>
-                        {filteredUsers.map((u) => (
+                        {paginatedUsers.map(u => (
                             <tr
                                 key={u.id}
-                                onClick={() => {
-                                    const clean = new User(u);
-                                    clean.password = undefined;
-                                    setSelected(clean);
-                                    setIsAddMode(false);
-                                }}
-
-                                className={`
-                                        cursor-pointer border-l-4
-                                        ${selected?.id === u.id && !isAddMode
-                                    ? "bg-base-300 border-primary"
-                                    : "border-transparent hover:bg-base-200"}
-                                    `}
+                                onClick={() => selectUser(u)}
+                                className={`cursor-pointer border-l-4 ${
+                                    selected?.id === u.id && !isAddMode
+                                        ? "bg-base-300 border-primary"
+                                        : "border-transparent hover:bg-base-200"
+                                }`}
                             >
                                 <td className="border border-base-content/20">{u.id}</td>
                                 <td className="border border-base-content/20">{u.name}</td>
@@ -309,6 +348,13 @@ export function UserList() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* PAGINATION */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
             </div>
         </>
     );
