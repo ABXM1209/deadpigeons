@@ -10,9 +10,19 @@ interface User {
     phone: string;
     email: string;
     password?: string;
-    currentPassword: string; // hidden, used for PUT if admin didn't change
+    currentPassword: string; // hidden, used if password not changed
     balance: number;
     isactive: boolean;
+}
+
+interface UpdatePayload {
+    id: string;
+    name: string;
+    phone: string;
+    email: string;
+    balance: number;
+    isactive: boolean;
+    password?: string; // optional
 }
 
 export function UserList() {
@@ -21,8 +31,6 @@ export function UserList() {
     const [isAddMode, setIsAddMode] = useState(false);
     const [search, setSearch] = useState("");
     const [filterStatus, setFilterStatus] = useState("all");
-
-    // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
@@ -45,6 +53,7 @@ export function UserList() {
                 setUsers(mapped);
             } catch (err) {
                 console.error(err);
+                alert("Failed to fetch users");
             }
         };
 
@@ -66,7 +75,6 @@ export function UserList() {
         return matchesSearch && matchesStatus;
     });
 
-    // Pagination calculations
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
     const paginatedUsers = filteredUsers.slice(
         (currentPage - 1) * itemsPerPage,
@@ -101,15 +109,28 @@ export function UserList() {
     const handleSave = async () => {
         if (!selected || !selected.id) return;
 
-        const payload = {
+        const originalUser = users.find(u => u.id === selected.id);
+        if (!originalUser) {
+            alert("User not found!");
+            return;
+        }
+
+        // -----------------------
+        // Build payload
+        // -----------------------
+        const payload: UpdatePayload = {
             id: selected.id,
             name: selected.name,
             phone: selected.phone,
             email: selected.email,
-            password: selected.password?.trim() ? selected.password : selected.currentPassword,
             balance: selected.balance,
             isactive: selected.isactive,
         };
+
+        // Only include password if the admin typed a new one
+        if (selected.password?.trim()) {
+            payload.password = selected.password;
+        }
 
         try {
             const res = await fetch(`${finalUrl}/api/Users/${selected.id}`, {
@@ -131,8 +152,9 @@ export function UserList() {
             setSelected(updated);
             alert("User updated successfully!");
         } catch (err) {
+            console.error(err);
             if (err instanceof Error) alert(err.message);
-            else console.error(err);
+            else alert("Failed to update user");
         }
     };
 
@@ -178,8 +200,9 @@ export function UserList() {
             setIsAddMode(false);
             alert("User added successfully!");
         } catch (err) {
+            console.error(err);
             if (err instanceof Error) alert(err.message);
-            else console.error(err);
+            else alert("Failed to add user");
         }
     };
 
@@ -189,7 +212,6 @@ export function UserList() {
     return (
         <>
             <Navbar title="User List" />
-
             <div className="m-3 p-3 rounded-xl bg-base-200 flex flex-col gap-4" style={{ minHeight: "80vh" }}>
                 {/* INFO BOX */}
                 <div className="p-4 rounded-xl border border-base-content/10 bg-base-200">

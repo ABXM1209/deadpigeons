@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import logo from "../assets/JerneIF-logo.png";
 import ThemeToggle from "./ThemeToggle";
-import { userAtom, type User } from "../authAtoms";
+import { userAtom, type User } from "../utils/authAtoms.tsx";
 import { ApiClient } from "../api/apiClient";
 import { finalUrl } from '../baseUrl';
 

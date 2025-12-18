@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Navbar from "./Navbar.tsx";
 import { useSetAtom } from "jotai";
-import { userAtom } from "../authAtoms.tsx";
+import { userAtom } from "../utils/authAtoms.tsx";
 import {finalUrl} from '../baseUrl.ts'
 
 export function Login() {

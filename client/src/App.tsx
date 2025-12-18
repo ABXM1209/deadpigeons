@@ -2,7 +2,7 @@
 import { createBrowserRouter, RouterProvider, type RouteObject } from "react-router-dom";
 import './App.css';
 import { useAtomValue } from "jotai";
-import { userAtom } from "./authAtoms";
+import { userAtom } from "./utils/authAtoms.tsx";
 import { UserBoard } from "./Components/User/UserBoard";
 import { Purchase } from "./Components/User/Purchase";
 import { Login } from "./Components/Login";

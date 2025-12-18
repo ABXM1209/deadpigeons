@@ -1,7 +1,7 @@
 import Navbar from "../Navbar.tsx";
 import { useState } from "react";
 import { useAtom } from "jotai";
-import { userAtom } from "../../authAtoms";
+import { userAtom } from "../../utils/authAtoms.tsx";
 import { finalUrl } from "../../baseUrl.ts";
 
 type SwaggerTransaction = {

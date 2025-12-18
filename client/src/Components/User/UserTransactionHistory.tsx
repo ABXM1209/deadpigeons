@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAtom } from "jotai";
-import { userAtom } from "../../authAtoms.tsx";
+import { userAtom } from "../../utils/authAtoms.tsx";
 import Navbar from "../../Components/Navbar.tsx";
 import { ApiClient, Transaction as ApiTransaction } from "../../api/apiClient.ts";
 import { finalUrl } from "../../baseUrl.ts";

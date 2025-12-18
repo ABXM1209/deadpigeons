@@ -1,18 +1,24 @@
-import { useState, useEffect } from "react";
-import Navbar from "../Navbar.tsx";
+import { useEffect, useState } from "react";
+import Navbar from "../Navbar";
 import { finalUrl } from "../../baseUrl";
 import { v4 as uuidv4 } from "uuid";
-import { Toast } from "../../utils/Toast.tsx";
-import { getCurrentWeek } from "../../utils/week.ts";
+import { Toast } from "../../utils/Toast";
+import { getCurrentWeek } from "../../utils/week";
 
-interface AdminBoardType {
+/**
+ * Admin board (current winning numbers)
+ */
+interface AdminBoard {
     id: string;
     boardId: string;
     winningNumbers: number[];
     weekNumber: number;
 }
 
-interface AdminBoardHistoryType {
+/**
+ * Admin board history (closed boards)
+ */
+interface AdminBoardHistory {
     id: string;
     boardId: string;
     winningNumbers: number[];
@@ -20,7 +26,10 @@ interface AdminBoardHistoryType {
     isOpen: boolean;
 }
 
-interface BoardType {
+/**
+ * Main Board entity
+ */
+interface Board {
     id: string;
     isOpen: boolean;
     weekNumber: number;
@@ -28,105 +37,137 @@ interface BoardType {
 
 export function AdminBoard() {
     const [selected, setSelected] = useState<number[]>([]);
-    const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-    const [currentBoard, setCurrentBoard] = useState<AdminBoardType | null>(null);
-    const [boards, setBoards] = useState<BoardType[]>([]);
-    const [adminHistory, setAdminHistory] = useState<AdminBoardHistoryType[]>([]);
-    const [currentWeek, setCurrentWeek] = useState(getCurrentWeek());
-    const max = 3;
-    const min = 0;
+    const [toast, setToast] = useState<{
+        message: string;
+        type: "success" | "error";
+    } | null>(null);
 
+    const [boards, setBoards] = useState<Board[]>([]);
+    const [adminHistory, setAdminHistory] = useState<AdminBoardHistory[]>([]);
+    const [currentAdminBoard, setCurrentAdminBoard] = useState<AdminBoard | null>(null);
+
+    const [currentWeek, setCurrentWeek] = useState<number>(getCurrentWeek());
+
+    const maxSelections = 3;
+    const minSelections = 0;
+
+    // -----------------------------
+    // TOAST HELPER
+    // -----------------------------
     function showToast(message: string, type: "success" | "error") {
         setToast({ message, type });
         setTimeout(() => setToast(null), 2500);
     }
 
-    const fetchBoards = async (week: number) => {
+    // -----------------------------
+    // FETCH ALL REQUIRED DATA
+    // -----------------------------
+    async function fetchData(week: number) {
         try {
-            // Fetch Board table
-            const resBoards = await fetch(`${finalUrl}/api/Board`);
-            const boardsData: BoardType[] = await resBoards.json();
+            const boardsRes = await fetch(`${finalUrl}/api/Board`);
+            const boardsData: Board[] = await boardsRes.json();
             setBoards(boardsData);
 
-            // Fetch AdminBoard
-            const resAdmin = await fetch(`${finalUrl}/api/AdminBoard?weekNumber=${week}`);
-            const adminData: AdminBoardType[] = await resAdmin.json();
+            const adminRes = await fetch(
+                `${finalUrl}/api/AdminBoard?weekNumber=${week}`
+            );
+            const adminBoards: AdminBoard[] = await adminRes.json();
 
-            // Fetch AdminBoardHistory
-            const resHistory = await fetch(`${finalUrl}/api/AdminBoardHistory`);
-            const historyData: AdminBoardHistoryType[] = await resHistory.json();
+            const historyRes = await fetch(`${finalUrl}/api/AdminBoardHistory`);
+            const historyData: AdminBoardHistory[] = await historyRes.json();
             setAdminHistory(historyData);
 
-            const weekBoard = boardsData.find((b) => b.weekNumber === week);
+            const weekBoard = boardsData.find(b => b.weekNumber === week) ?? null;
+
             if (weekBoard) {
-                const weekAdmin = adminData.find((a) => a.boardId === weekBoard.id) || null;
-                setCurrentBoard(weekAdmin);
-                setSelected(weekAdmin?.winningNumbers || []);
+                const adminBoard =
+                    adminBoards.find(a => a.boardId === weekBoard.id) ?? null;
+
+                setCurrentAdminBoard(adminBoard);
+                setSelected(adminBoard?.winningNumbers ?? []);
             } else {
-                setCurrentBoard(null);
+                setCurrentAdminBoard(null);
                 setSelected([]);
             }
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            console.error(error);
             showToast("Failed to load board data", "error");
         }
-    };
+    }
 
     useEffect(() => {
-        fetchBoards(currentWeek);
+        fetchData(currentWeek);
     }, [currentWeek]);
 
-    const toggle = (n: number) => {
-        setSelected((prev) => {
-            if (prev.includes(n)) return prev.filter((x) => x !== n);
-            if (prev.length >= max) {
-                showToast(`Maximum allowed selections is ${max}`, "error");
+    // -----------------------------
+    // NUMBER TOGGLE
+    // -----------------------------
+    function toggleNumber(n: number) {
+        setSelected(prev => {
+            if (prev.includes(n)) {
+                return prev.filter(x => x !== n);
+            }
+
+            if (prev.length >= maxSelections) {
+                showToast(`Maximum allowed selections is ${maxSelections}`, "error");
                 return prev;
             }
+
             return [...prev, n];
         });
-    };
+    }
 
-    const canSubmit = selected.length === max || selected.length === min;
+    const canSubmit =
+        selected.length === maxSelections || selected.length === minSelections;
 
-    const createOrUpdateBoard = async (board?: BoardType) => {
+    const currentWeekBoard =
+        boards.find(b => b.weekNumber === currentWeek) ?? null;
+
+    // -----------------------------
+    // CREATE OR UPDATE BOARD
+    // -----------------------------
+    async function submitBoard(board?: Board) {
         try {
-            const boardId = board?.id || uuidv4();
-            const weekNumber = currentWeek;
+            const boardId = board?.id ?? uuidv4();
 
-            // Create new board if it doesn't exist
+            // Create board if it does not exist
             if (!board) {
-                const boardPayload = { id: boardId, weekNumber, isOpen: true };
-                const res = await fetch(`${finalUrl}/api/Board`, {
+                const newBoard: Board = {
+                    id: boardId,
+                    weekNumber: currentWeek,
+                    isOpen: true
+                };
+
+                await fetch(`${finalUrl}/api/Board`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(boardPayload),
+                    body: JSON.stringify(newBoard)
                 });
-                if (!res.ok) throw new Error("Failed to create board");
-                setBoards((prev) => [...prev, boardPayload]);
-                setSelected([]);
-                setCurrentBoard(null);
-                showToast("New board created!", "success");
+
+                showToast("New board created", "success");
+                await fetchData(currentWeek);
                 return;
             }
 
-            // Submit or update winning numbers
-            const adminPayload: AdminBoardType = {
-                id: currentBoard?.id || uuidv4(),
+            // Prepare admin board payload
+            const adminPayload: AdminBoard = {
+                id: currentAdminBoard?.id ?? uuidv4(),
                 boardId,
                 winningNumbers: selected,
-                weekNumber,
+                weekNumber: currentWeek
             };
 
-            // AdminBoardHistory: either POST new or PUT existing
-            const existingHistory = adminHistory.find((h) => h.boardId === boardId);
-            if (selected.length === max) {
-                const historyPayload: AdminBoardHistoryType = {
-                    id: existingHistory?.id || uuidv4(),
+            // Handle AdminBoardHistory (only when closing board)
+            if (selected.length === maxSelections) {
+                const existingHistory =
+                    adminHistory.find(h => h.boardId === boardId) ?? null;
+
+                const historyPayload: AdminBoardHistory = {
+                    id: existingHistory?.id ?? uuidv4(),
                     boardId,
                     winningNumbers: selected,
-                    weekNumber,
-                    isOpen: false,
+                    weekNumber: currentWeek,
+                    isOpen: false
                 };
 
                 await fetch(
@@ -136,66 +177,83 @@ export function AdminBoard() {
                     {
                         method: existingHistory ? "PUT" : "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(historyPayload),
+                        body: JSON.stringify(historyPayload)
                     }
                 );
             }
 
-            // AdminBoard POST/PUT
-            await fetch(`${finalUrl}/api/AdminBoard${currentBoard ? "/" + adminPayload.id : ""}`, {
-                method: currentBoard ? "PUT" : "POST",
+            // Save AdminBoard
+            await fetch(
+                `${finalUrl}/api/AdminBoard${currentAdminBoard ? "/" + adminPayload.id : ""}`,
+                {
+                    method: currentAdminBoard ? "PUT" : "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(adminPayload)
+                }
+            );
+
+            // Update board open/close state
+            await fetch(`${finalUrl}/api/Board/${boardId}`, {
+                method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(adminPayload),
+                body: JSON.stringify({
+                    ...board,
+                    isOpen: selected.length !== maxSelections
+                })
             });
 
-            // Close the board in Board table
-            if(selected.length === max) {
-                await fetch(`${finalUrl}/api/Board/${boardId}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ ...board, isOpen: false }),
-                });
-            }else if(selected.length === min) {
-                await fetch(`${finalUrl}/api/Board/${boardId}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ ...board, isOpen: true }),
-                });
-            }
-
-
-            showToast("Winning numbers submitted!", "success");
-            setCurrentBoard(adminPayload);
-            await fetchBoards(currentWeek); // refresh state to update UI immediately
-        } catch (err) {
-            console.error(err);
-            showToast("Failed to submit/update board", "error");
+            showToast("Winning numbers saved", "success");
+            await fetchData(currentWeek);
+        } catch (error) {
+            console.error(error);
+            showToast("Failed to submit board", "error");
         }
-    };
+    }
 
-    const prevWeek = () => setCurrentWeek((w) => (w > 1 ? w - 1 : 1));
-    const nextWeek = () => setCurrentWeek((w) => (w < 52 ? w + 1 : 52));
+    // -----------------------------
+    // WEEK NAVIGATION
+    // -----------------------------
+    function prevWeek() {
+        setCurrentWeek(w => (w > 1 ? w - 1 : 1));
+    }
 
-    const currentWeekBoard = boards.find((b) => b.weekNumber === currentWeek);
+    function nextWeek() {
+        setCurrentWeek(w => (w < 52 ? w + 1 : 52));
+    }
 
+    // -----------------------------
+    // RENDER
+    // -----------------------------
     return (
         <>
             <Navbar title={`Admin Board — Week ${currentWeek}`} />
-            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-            <div className="flex justify-center mt-5 mb-5 gap-4">
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
+
+            <div className="flex justify-center gap-4 mt-5 mb-5">
                 <button className="btn btn-sm" onClick={prevWeek}>
                     Previous Week
                 </button>
+
                 <span className="text-xl font-bold">Week {currentWeek}</span>
+
                 <button className="btn btn-sm" onClick={nextWeek}>
                     Next Week
                 </button>
             </div>
 
             {!currentWeekBoard && (
-                <div className="flex justify-center mb-5">
-                    <button className="btn btn-primary" onClick={() => createOrUpdateBoard()}>
+                <div className="flex justify-center mb-6">
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => submitBoard()}
+                    >
                         Create New Board
                     </button>
                 </div>
@@ -203,16 +261,14 @@ export function AdminBoard() {
 
             {currentWeekBoard && (
                 <>
-                    <div className="week-label flex justify-center text-3xl font-bold m-5">
-                        Week <span className="ml-2">{currentWeek}</span>
-                    </div>
-
-                    <div className="flex justify-center mb-4 mt-5">
+                    <div className="flex justify-center mb-4">
                         <div className="p-4 rounded-xl bg-base-200 text-center">
                             <p className="text-xl font-semibold">
-                                Selected: {selected.length} / {max}
+                                Selected: {selected.length} / {maxSelections}
                             </p>
-                            <p className="text-sm text-gray-600">(Choose exactly 3 numbers)</p>
+                            <p className="text-sm opacity-70">
+                                Choose exactly 3 numbers (or 0 to reopen)
+                            </p>
                         </div>
                     </div>
 
@@ -220,13 +276,17 @@ export function AdminBoard() {
                         <div className="grid grid-cols-4 gap-2">
                             {Array.from({ length: 16 }, (_, i) => {
                                 const n = i + 1;
-                                const isSelected = selected.includes(n);
+                                const active = selected.includes(n);
+
                                 return (
                                     <div
                                         key={n}
-                                        onClick={() => toggle(n)}
-                                        className={`flex items-center justify-center border border-gray-400 w-18 h-18 text-xl cursor-pointer rounded-xl ${
-                                            isSelected ? "bg-base-300 font-bold" : "bg-base-100 hover:bg-base-200"
+                                        onClick={() => toggleNumber(n)}
+                                        className={`w-18 h-18 flex items-center justify-center rounded-xl cursor-pointer border
+                                        ${
+                                            active
+                                                ? "bg-base-300 font-bold"
+                                                : "bg-base-100 hover:bg-base-200"
                                         }`}
                                     >
                                         {n}
@@ -238,11 +298,11 @@ export function AdminBoard() {
 
                     <div className="flex justify-center mt-7 mb-10">
                         <button
-                            className="btn btn-default btn-outline btn-xl"
+                            className="btn btn-outline btn-lg"
                             disabled={!canSubmit}
-                            onClick={() => createOrUpdateBoard(currentWeekBoard)}
+                            onClick={() => submitBoard(currentWeekBoard)}
                         >
-                            {currentBoard ? "Update" : "Submit"}
+                            {currentAdminBoard ? "Update" : "Submit"}
                         </button>
                     </div>
                 </>

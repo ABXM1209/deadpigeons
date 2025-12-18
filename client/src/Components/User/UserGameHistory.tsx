@@ -1,15 +1,20 @@
 import { useEffect, useState, useMemo } from "react";
 import { useAtom } from "jotai";
-import { userAtom } from "../../authAtoms";
+import { userAtom } from "../../utils/authAtoms.tsx";
 import Navbar from "../../Components/Navbar.tsx";
-import {Pagination} from "../../utils/Pagination.tsx";
+import { Pagination } from "../../utils/Pagination.tsx";
+import { GuessingNumberAnimation } from "../GuessingNumberAnimation.tsx";
+import { finalUrl } from "../../baseUrl.ts";
 
+// Board type
 type Board = {
     id: string;
     isOpen: boolean;
     weekNumber: number;
+    winningNumbers?: number[];
 };
 
+// User board history from backend
 type UserBoardHistory = {
     id: string;
     userId: string;
@@ -18,10 +23,21 @@ type UserBoardHistory = {
     date: string;
 };
 
+// User's played boards with guessing numbers
+type UserBoard = {
+    id: string;
+    boardId: string;
+    userId: string;
+    guessingNumbers: number[];
+    weekRepeat: number;
+};
+
+// Row for table
 type UserGameHistoryRow = {
     id: string;
     boardName: string;
     week: number;
+    selectedNumbers: number[];
     isWinner: boolean;
     status: "Open" | "Closed";
     playedDate: string;
@@ -45,27 +61,35 @@ export function UserGameHistory() {
 
         const fetchData = async () => {
             try {
-                const [boardsRes, historyRes] = await Promise.all([
-                    fetch("http://localhost:5139/api/Board"),
-                    fetch("http://localhost:5139/api/UserBoardHistory"),
+                // Fetch boards, user history, and user's played boards
+                const [boardsRes, historyRes, userRes] = await Promise.all([
+                    fetch(`${finalUrl}/api/Board`),
+                    fetch(`${finalUrl}/api/UserBoardHistory`),
+                    fetch(`${finalUrl}/api/UserBoard`),
                 ]);
 
                 const boards: Board[] = await boardsRes.json();
                 const histories: UserBoardHistory[] = await historyRes.json();
+                const users: UserBoard[] = await userRes.json();
 
+                // Map boards by ID
                 const boardMap = new Map<string, Board>();
                 boards.forEach((b) => boardMap.set(String(b.id), b));
 
+                // Filter histories for current user
                 const userHistories = histories.filter(
                     (h) => String(h.userId) === String(user.userID)
                 );
 
+                // Build rows with guessing numbers
                 const rowsData: UserGameHistoryRow[] = userHistories.map((h) => {
                     const board = boardMap.get(String(h.boardId));
+                    const userBoard = users.find((u) => u.boardId === h.boardId && u.userId === user.userID);
                     return {
                         id: h.id,
                         boardName: board ? `Week ${board.weekNumber}` : `Board ${h.boardId}`,
                         week: board?.weekNumber ?? 0,
+                        selectedNumbers: userBoard?.guessingNumbers ?? [],
                         isWinner: h.isWinner,
                         status: board?.isOpen ? "Open" : "Closed",
                         playedDate: h.date,
@@ -83,6 +107,7 @@ export function UserGameHistory() {
         fetchData();
     }, [user]);
 
+    // Filter rows by search and win/lose
     const filteredRows = useMemo(() => {
         return rows.filter((r) => {
             const matchesSearch =
@@ -158,6 +183,7 @@ export function UserGameHistory() {
                                 <tr>
                                     <th>Board Name</th>
                                     <th>Week</th>
+                                    <th>Selected</th>
                                     <th>Result</th>
                                     <th>Status</th>
                                     <th>Played Date</th>
@@ -168,6 +194,9 @@ export function UserGameHistory() {
                                     <tr key={r.id}>
                                         <td>{r.boardName}</td>
                                         <td>{r.week}</td>
+                                        <td>
+                                            <GuessingNumberAnimation guessingNumbers={r.selectedNumbers} />
+                                        </td>
                                         <td className={r.isWinner ? "text-green-500 font-bold" : ""}>
                                             {r.isWinner ? "Winner" : "Not Winner"}
                                         </td>
