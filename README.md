@@ -50,11 +50,15 @@ Use the following test users to log in:
 > 
 > Password: user
 
+![User Homepage](README_assets/user_home_light_theme.png)
+
 ### **Admin:**
 > Email: admin@gmail.com 
 > 
 > Password: admin
-> 
+>
+![Admin Homepage](README_assets/admin_home_dark_theme.png)
+
 
 ### Authorization & Security
 The application uses **role-based authorization** with two roles:
