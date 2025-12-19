@@ -8,28 +8,33 @@ on:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      # 1. Checkout code (needed for flyctl)
+      # 1. Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Download backend artifact
+      # 2. Download backend artifact from previous CI workflow
       - name: Download backend artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: backend
-          path: ./server/api/publish
+          path: ./publish
 
-      # 3. Install flyctl
+      # 3. Download frontend artifact from previous CI workflow
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend
+          path: ./client/dist
+
+      # 4. Install flyctl
       - name: Install flyctl
         uses: superfly/flyctl-actions/setup-flyctl@v1
 
-      # 4. Fly.io deploy
-      - name: Fly.io Deploy
+      # 5. Deploy to Fly.io
+      - name: Deploy to Fly.io
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         run: |
-          cd server/api/publish
-          fly deploy --remote-only
+          fly deploy --config fly.toml --remote-only
