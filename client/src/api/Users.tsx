@@ -43,7 +43,7 @@ function Users() {
                             <td>{u.name}</td>
                             <td>{u.email}</td>
                             <td>{u.phone}</td>
-                            <td>{u.balance} dkk</td>
+                            <td>{u.balance} DKK</td>
                         </tr>
                     ))}
                     {usersToDisplay.length === 0 && (
