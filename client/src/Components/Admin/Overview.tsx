@@ -42,6 +42,7 @@ type MergedBoard = Board & {
 
 export function Overview() {
     const [adminBoards, setAdminBoards] = useState<AdminBoard[]>([]);
+    const [weekSearch, setWeekSearch] = useState("");
     const [boards, setBoards] = useState<Board[]>([]);
     const [userBoards, setUserBoards] = useState<UserBoard[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -132,9 +133,15 @@ export function Overview() {
         };
     });
 
-    // Boards pagination
-    const boardsTotalPages = Math.ceil(mergedBoards.length / itemsPerPage);
-    const boardsToDisplay = mergedBoards.slice((boardsPage - 1) * itemsPerPage, boardsPage * itemsPerPage);
+    const filteredBoards = mergedBoards.filter((b) =>
+        b.weekNumber.toString().includes(weekSearch)
+    );
+
+    const boardsTotalPages = Math.ceil(filteredBoards.length / itemsPerPage);
+    const boardsToDisplay = filteredBoards.slice(
+        (boardsPage - 1) * itemsPerPage,
+        boardsPage * itemsPerPage
+    );
 
     // Players for selected board
     const selectedBoardPlayersAll = selectedBoardId
@@ -174,13 +181,25 @@ export function Overview() {
 
     return (
         <>
-            <Navbar title="Overview" />
+            <Navbar title="Board Overview" />
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
             {/* Boards Overview */}
             <div className="m-5 p-5 rounded-xl bg-base-200">
-                <h2 className="text-2xl font-bold mb-4 text-center">Boards Overview</h2>
                 <div className="overflow-x-auto">
+                    <div className="flex gap-2 mb-3">
+                        <input
+                            type="text"
+                            placeholder="Search by week number..."
+                            value={weekSearch}
+                            onChange={(e) => {
+                                setWeekSearch(e.target.value);
+                                setBoardsPage(1); // reset page when searching
+                            }}
+                            className="input input-bordered w-1/3"
+                        />
+                    </div>
+
                     <table className="table table-zebra">
                         <thead>
                         <tr>
@@ -224,7 +243,7 @@ export function Overview() {
 
             {/* Players for Board */}
             {selectedBoardId && (
-                <div className="m-5 p-5 rounded-xl bg-base-100">
+                <div className="m-5 p-5 rounded-xl bg-base-200">
                     <h2 className="text-2xl font-bold mb-4 text-center">Players for Board {selectedBoardId}</h2>
 
                     {/* Filter bar */}
@@ -243,14 +262,14 @@ export function Overview() {
                             onChange={(e) => setWinnerFilter(e.target.value as WinnerFilterType)}
                         >
                             <option value="All">All ({totalCount})</option>
-                            <option value="Winner">Winner ({winnerCount})</option>
-                            <option value="Loser">Loser ({loserCount})</option>
-                            <option value="Unknown">Unknown ({unknownCount})</option>
+                            <option value="Winner">Won ({winnerCount})</option>
+                            <option value="Loser">Lost ({loserCount})</option>
+                            <option value="Unknown">In Progress ({unknownCount})</option>
                         </select>
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="table table-zebra">
+                        <table className="table">
                             <thead>
                             <tr>
                                 <th>Player Name</th>
@@ -279,9 +298,9 @@ export function Overview() {
                                         {p.winnerStatus === "Unknown" ? (
                                             "?"
                                         ) : p.winnerStatus === "Winner" ? (
-                                            <span className="badge badge-success">Winner</span>
+                                            <span className="badge badge-success">Won</span>
                                         ) : (
-                                            <span className="badge badge-ghost">Lost</span>
+                                            <span className="badge badge-error">Lost</span>
                                         )}
                                     </td>
                                 </tr>

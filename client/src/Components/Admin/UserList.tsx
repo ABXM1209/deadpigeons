@@ -98,7 +98,7 @@ export function UserList() {
             password: "",
             currentPassword: "",
             balance: 0,
-            isactive: true,
+            isactive: false,
         });
         setIsAddMode(true);
     };
@@ -219,7 +219,7 @@ export function UserList() {
                         <h2 className="text-xl font-bold">
                             {isAddMode ? "Add User" : selected ? "Edit User" : "User Details"}
                         </h2>
-                        <button className="btn btn-primary btn-sm" onClick={startAddMode}>
+                        <button className="btn btn-primary w-32" onClick={startAddMode}>
                             Add New User
                         </button>
                     </div>
@@ -230,6 +230,7 @@ export function UserList() {
                                 <label className="font-semibold">User ID:</label>
                                 <div>{isAddMode ? "Auto-generated" : selected.id}</div>
                             </div>
+
                             <div>
                                 <label className="font-semibold">Name:</label>
                                 <input
@@ -241,6 +242,7 @@ export function UserList() {
                                     }
                                 />
                             </div>
+
                             <div>
                                 <label className="font-semibold">Phone:</label>
                                 <input
@@ -252,6 +254,7 @@ export function UserList() {
                                     }
                                 />
                             </div>
+
                             <div>
                                 <label className="font-semibold">Email:</label>
                                 <input
@@ -263,6 +266,7 @@ export function UserList() {
                                     }
                                 />
                             </div>
+
                             <div>
                                 <label className="font-semibold">{isAddMode ? "Password" : "New Password (optional)"}</label>
                                 <input
@@ -274,6 +278,7 @@ export function UserList() {
                                     }
                                 />
                             </div>
+
                             <div>
                                 <label className="font-semibold">Status:</label>
                                 <select
@@ -282,11 +287,13 @@ export function UserList() {
                                     onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                                         setSelected(prev => prev ? { ...prev, isactive: e.target.value === "active" } : prev)
                                     }
+                                    disabled={isAddMode}
                                 >
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
                             </div>
+
                             <div>
                                 <label className="font-semibold">Balance:</label>
                                 <input
@@ -298,13 +305,25 @@ export function UserList() {
                                     }
                                 />
                             </div>
-                            <div className="col-span-2">
+
+                            {/* Empty space to push next button to last column */}
+                            <div className="col-span"></div>
+
+                            <div className="flex justify-end mt-4">
                                 {isAddMode ? (
-                                    <button className="btn btn-success mt-2" onClick={handleAdd}>
+                                    <button className="btn btn-success w-32"
+                                            onClick={handleAdd}
+                                            disabled={
+                                                !selected?.name.trim() ||
+                                                !selected?.phone.trim() ||
+                                                !selected?.email.trim() ||
+                                                !selected?.password?.trim()
+                                            }
+                                    >
                                         Add User
                                     </button>
                                 ) : (
-                                    <button className="btn btn-default btn-outline mt-2" onClick={handleSave}>
+                                    <button className="btn btn-success w-32" onClick={handleSave}>
                                         Save Changes
                                     </button>
                                 )}
@@ -355,7 +374,7 @@ export function UserList() {
                                 onClick={() => selectUser(u)}
                                 className={`cursor-pointer border-l-4 ${
                                     selected?.id === u.id && !isAddMode
-                                        ? "bg-base-300 border-primary"
+                                        ? "bg-base-300 border-default"
                                         : "border-transparent hover:bg-base-200"
                                 }`}
                             >

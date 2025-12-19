@@ -8,7 +8,7 @@ export function AdminHome() {
     return (
         <div className="min-h-screen bg-base-200">
             {/* NAVBAR */}
-            <Navbar title="Admin Dashboard" />
+            <Navbar title="Dashboard" />
 
             {/* PAGE CONTENT */}
             <div className="p-6 flex flex-col gap-6">

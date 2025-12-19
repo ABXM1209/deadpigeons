@@ -30,7 +30,7 @@ export function GuessingNumberAnimation({ guessingNumbers }: Props) {
           "
                     style={{
                         animationDelay: `${index * 500}ms`,
-                        cursor: 'pointer',
+                        cursor: 'default',
 
                     }}
                 >

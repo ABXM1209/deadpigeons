@@ -7,6 +7,7 @@ import ThemeToggle from "./ThemeToggle";
 import { userAtom, type User } from "../utils/authAtoms.tsx";
 import { ApiClient } from "../api/apiClient";
 import { finalUrl } from '../baseUrl';
+import '../../src/App.css';
 
 
 const api = new ApiClient(finalUrl);
@@ -101,7 +102,7 @@ export default function Navbar({ title }: NavbarProps) {
 
                         <ul
                             tabIndex={0}
-                            className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
+                            className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow text-lg font-medium"
                         >
                             {/* User menu */}
                             {!isAdmin && user && (

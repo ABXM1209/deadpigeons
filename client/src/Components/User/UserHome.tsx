@@ -45,14 +45,14 @@ export function UserHome() {
 
     return (
         <>
-            <Navbar title="Home" />
+            <Navbar title="My Page" />
 
             <div className="w-full h-[calc(100vh-60px)] p-6 flex justify-center overflow-auto">
                 <div className="w-full max-w-5xl space-y-6">
                     {/* HEADER */}
                     <div className="border border-gray-700 dark:i-carbon-moon p-5 shadow-inner">
                         <h1 className="text-2xl font-semibold tracking-wide">
-                            User Dashboard — Overview
+                            User Information
                         </h1>
                         <p>Logged in as: {userDTO.name}</p>
                         <p>User ID: {userDTO.userID}</p>

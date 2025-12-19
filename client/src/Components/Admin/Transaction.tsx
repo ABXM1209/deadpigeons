@@ -46,15 +46,18 @@ export function Transaction() {
 
     // 🔹 Filter & Search
     const filteredData = transactions.filter((t) => {
-        const searchMatch =
-            t.id.includes(search) ||
-            t.userId.includes(search) ||
-            t.userName.toLowerCase().includes(search.toLowerCase());
+        const searchLower = search.toLowerCase();
 
-        const statusMatch = filterStatus === "all" || t.status === filterStatus;
+        const searchMatch =
+            t.transactionId.toLowerCase().includes(searchLower) ||
+            t.userName.toLowerCase().includes(searchLower);
+
+        const statusMatch =
+            filterStatus === "all" || t.status === filterStatus;
 
         return searchMatch && statusMatch;
     });
+
 
     // 🔹 Validate selected transaction before sending
     function validateTransaction(t: TransactionType) {
@@ -116,81 +119,81 @@ export function Transaction() {
                 <div className="p-4 rounded-xl border border-base-content/10 bg-base-200">
                     <h2 className="text-xl font-bold mb-2">Transaction Details</h2>
 
-                    {selected ? (
-                        <div className="grid grid-cols-3 gap-5 text-xl">
-                            <div>
-                                <label className="font-semibold">Transaction ID:</label>
-                                <div>{selected.transactionId}</div>
-                            </div>
+                        {selected ? (
+                            <div className="grid grid-cols-3 gap-5 text-xl">
+                                <div>
+                                    <label className="font-semibold">Transaction ID:</label>
+                                    <div>{selected.transactionId}</div>
+                                </div>
 
-                            <div>
-                                <label className="font-semibold">User ID:</label>
-                                <div>{selected.userId}</div>
-                            </div>
+                                <div>
+                                    <label className="font-semibold">User ID:</label>
+                                    <div>{selected.userId}</div>
+                                </div>
 
-                            <div>
-                                <label className="font-semibold">User Name:</label>
-                                <div>{selected.userName}</div>
-                            </div>
+                                <div>
+                                    <label className="font-semibold">User Name:</label>
+                                    <div>{selected.userName}</div>
+                                </div>
 
-                            <div>
-                                <label className="font-semibold">Status:</label>
-                                <select
-                                    className="select select-bordered w-full text-lg"
-                                    value={selected.status}
-                                    onChange={(e) =>
-                                        setSelected((prev) =>
-                                            prev
-                                                ? { ...prev, status: e.target.value as TransactionType["status"] }
-                                                : prev
-                                        )
-                                    }
-                                >
-                                    <option value="approved">Approved</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
-                            </div>
+                                <div>
+                                    <label className="font-semibold">Status:</label>
+                                    <select
+                                        className="select select-bordered w-full text-lg"
+                                        value={selected.status}
+                                        onChange={(e) =>
+                                            setSelected((prev) =>
+                                                prev
+                                                    ? {...prev, status: e.target.value as TransactionType["status"]}
+                                                    : prev
+                                            )
+                                        }
+                                    >
+                                        <option value="approved">Approved</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="rejected">Rejected</option>
+                                    </select>
+                                </div>
 
-                            <div>
-                                <label className="font-semibold">Balance:</label>
-                                <input
-                                    type="number"
-                                    className="input input-bordered w-full text-lg"
-                                    value={selected.balance}
-                                    onChange={(e) =>
-                                        setSelected((prev) =>
-                                            prev
-                                                ? { ...prev, balance: Number(e.target.value) }
-                                                : prev
-                                        )
-                                    }
-                                />
-                            </div>
+                                <div>
+                                    <label className="font-semibold">Balance:</label>
+                                    <input
+                                        type="number"
+                                        className="input input-bordered w-full text-lg"
+                                        value={selected.balance}
+                                        onChange={(e) =>
+                                            setSelected((prev) =>
+                                                prev
+                                                    ? {...prev, balance: Number(e.target.value)}
+                                                    : prev
+                                            )
+                                        }
+                                    />
+                                </div>
 
-                            <div className="col-span-2">
-                                <button
-                                    className="btn btn-default btn-outline mt-2"
-                                    onClick={handleSave}
-                                >
-                                    Save Changes
-                                </button>
+                                <div className="col-span flex justify-end mt-4">
+                                    <button
+                                        className="btn btn-success"
+                                        onClick={handleSave}
+                                    >
+                                        Save Changes
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <p>Select a transaction from the table.</p>
-                    )}
-                </div>
+                        ) : (
+                            <p>Select a transaction from the table.</p>
+                        )}
+                    </div>
 
-                {/* SEARCH + FILTER */}
-                <div className="p-3 rounded-xl border border-base-content/10 bg-base-200 flex gap-5">
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        className="input input-bordered w-1/3"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
+                    {/* SEARCH + FILTER */}
+                    <div className="p-3 rounded-xl border border-base-content/10 bg-base-200 flex gap-5">
+                        <input
+                            type="text"
+                            placeholder="Search by Transaction ID or User Name..."
+                            className="input input-bordered w-1/3"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
 
                     <select
                         className="select"

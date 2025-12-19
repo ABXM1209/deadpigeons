@@ -250,7 +250,7 @@ export function UserBoard() {
                     {!canPlay && renderBlockedMessage()}
 
                     <div className={`${canPlay ? "" : "opacity-40 pointer-events-none"}`}>
-                        <div className="flex justify-center mb-4">
+                        <div className="flex justify-center mt-5 mb-4">
                             <div className="p-4 rounded-xl bg-base-200 text-center">
                                 <p className="text-xl font-semibold">
                                     Selected: {selected.length} / {max}
@@ -283,7 +283,7 @@ export function UserBoard() {
 
                         <div className="flex justify-center mt-7">
                             <button
-                                className="btn btn-outline btn-lg rounded-xl"
+                                className="btn btn-outline btn-lg rounded-xl mb-5"
                                 disabled={!canPlay || !canSubmitNumbers}
                                 onClick={submitGuessing}
                             >

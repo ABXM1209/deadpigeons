@@ -17,3 +17,8 @@
 .animate-number-pop {
     animation: numberPop 0.4s ease-out forwards;
 }
+
+/* Apply bigger padding to all dropdown links */
+.menu li a {
+    @apply py-4 px-4;
+}

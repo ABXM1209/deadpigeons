@@ -50,7 +50,7 @@ function Transactions() {
             <div className="flex gap-2 mb-4">
                 <input
                     type="text"
-                    placeholder="Search by ID, username, or transaction ID..."
+                    placeholder="Search by ID, Username, or Transaction ID..."
                     className="input input-bordered w-full"
                     value={search}
                     onChange={(e) => {
@@ -62,11 +62,11 @@ function Transactions() {
 
             {/* TABLE */}
             <div className="overflow-x-auto rounded-box border border-base-content/10 bg-base-100">
-                <table className="table table-zebra">
+                <table className="table">
                     <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Username</th>
+                        <th>User Name</th>
                         <th>Transaction ID</th>
                         <th>Status</th>
                         <th>Balance</th>

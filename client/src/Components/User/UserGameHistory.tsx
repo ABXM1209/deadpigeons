@@ -129,7 +129,7 @@ export function UserGameHistory() {
     if (!user) {
         return (
             <>
-                <Navbar title="Game History" />
+                <Navbar title="Board History" />
                 <p className="m-3 text-center text-red-500">
                     Please login to view your game history
                 </p>
@@ -139,7 +139,7 @@ export function UserGameHistory() {
 
     return (
         <>
-            <Navbar title="Game History" />
+            <Navbar title="Board History" />
             <div className="m-3 p-3 rounded-xl bg-base-200 flex flex-col gap-4">
                 {/* Search + Filter */}
                 <div className="flex gap-5">

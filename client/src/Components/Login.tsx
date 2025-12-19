@@ -14,7 +14,8 @@ export function Login() {
     const [error, setError] = useState(""); // To show error messages
     const [loading, setLoading] = useState(false);
 
-    async function handleLogin() {
+    async function handleLogin(e?: React.FormEvent) {
+        e?.preventDefault();
         setError("");
         setLoading(true);
 
@@ -76,7 +77,10 @@ export function Login() {
                 <div className="flex flex-col justify-center items-center flex-1 min-h-0">
                     <label className="label text-4xl mb-5">User Login</label>
 
-                    <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+                    <form
+                        onSubmit={handleLogin}
+                        className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4"
+                    >
                         <label className="label">Email</label>
                         <input
                             type="email"
@@ -100,13 +104,13 @@ export function Login() {
                         )}
 
                         <button
+                            type="submit"
                             className="btn btn-default btn-outline mt-5"
-                            onClick={handleLogin}
                             disabled={loading}
                         >
                             {loading ? "Logging in..." : "Login"}
                         </button>
-                    </fieldset>
+                    </form>
                 </div>
             </div>
         </>

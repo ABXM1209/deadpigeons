@@ -226,7 +226,7 @@ export function AdminBoard() {
     // -----------------------------
     return (
         <>
-            <Navbar title={`Admin Board — Week ${currentWeek}`} />
+            <Navbar title={`Create Board`} />
 
             {toast && (
                 <Toast
