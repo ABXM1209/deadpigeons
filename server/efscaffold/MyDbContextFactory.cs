@@ -8,23 +8,26 @@ public class MyDbContextFactory : IDesignTimeDbContextFactory<MyDbContext>
 {
     public MyDbContext CreateDbContext(string[] args)
     {
-        IConfiguration config = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: true)
-            .AddJsonFile("appsettings.Development.json", optional: true)
-            .AddEnvironmentVariables()
-            .Build();
+        // =================== Build configuration ===================
+        var builder = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory()) // important: absolute path
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables();
 
-        var connectionString = config["AppOptions:DbConnectionString"];
+        var config = builder.Build();
+
+        // =================== Read connection string ===================
+        var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") 
+                               ?? config["AppOptions:DbConnectionString"];
 
         if (string.IsNullOrEmpty(connectionString))
-        {
             throw new InvalidOperationException(
                 "Connection string 'AppOptions:DbConnectionString' not found"
             );
-        }
 
+        // =================== Setup DbContext options ===================
         var optionsBuilder = new DbContextOptionsBuilder<MyDbContext>();
-
         optionsBuilder.UseNpgsql(
             connectionString,
             o => o.EnableRetryOnFailure()

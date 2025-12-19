@@ -10,41 +10,45 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // =================== Configuration ===================
-// builder.Configuration تلقائيًا يقرأ:
-// - appsettings.json
-// - appsettings.{Environment}.json
-// - Environment Variables
+// Load configuration from appsettings.json and environment variables
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
 var configuration = builder.Configuration;
 
 // =================== AppOptions ===================
-var appOptions = builder.Services.AddAppOptions(configuration);
+// Read app options from environment variables first, fallback to appsettings.json
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") 
+                ?? configuration["AppOptions:JWTSecret"];
+var dbConnectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") 
+                         ?? configuration["AppOptions:DbConnectionString"];
 
-if (string.IsNullOrWhiteSpace(appOptions.JWTSecret))
-{
+if (string.IsNullOrWhiteSpace(jwtSecret))
     throw new InvalidOperationException(
-        "JWTSecret is not set. Configure it in appsettings.json or environment variables."
+        "JWTSecret is not set. Configure it in environment variables or appsettings.json."
     );
-}
 
-if (string.IsNullOrWhiteSpace(appOptions.DbConnectionString))
-{
+if (string.IsNullOrWhiteSpace(dbConnectionString))
     throw new InvalidOperationException(
-        "DbConnectionString is not set. Configure it in appsettings.json or environment variables."
+        "DbConnectionString is not set. Configure it in environment variables or appsettings.json."
     );
-}
 
-builder.Services.AddSingleton(appOptions);
+// Register AppOptions as singleton
+builder.Services.AddSingleton(new AppOptions
+{
+    JWTSecret = jwtSecret,
+    DbConnectionString = dbConnectionString
+});
 
 // =================== Database ===================
+// Configure DbContext using the connection string
 builder.Services.AddDbContext<MyDbContext>(options =>
 {
-    options.UseNpgsql(
-        appOptions.DbConnectionString,
-        npgsqlOptions =>
-        {
-            npgsqlOptions.EnableRetryOnFailure(5);
-        }
-    );
+    options.UseNpgsql(dbConnectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.EnableRetryOnFailure(5);
+    });
 });
 
 // =================== Services ===================
@@ -98,7 +102,7 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddCors();
 
 // =================== JWT Authentication ===================
-var key = Encoding.UTF8.GetBytes(appOptions.JWTSecret);
+var key = Encoding.UTF8.GetBytes(jwtSecret);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -138,6 +142,7 @@ app.UseCors(policy => policy
 app.UseAuthentication();
 app.UseAuthorization();
 
+// =================== Map Controllers ===================
 app.MapControllers();
 
 app.Run();
