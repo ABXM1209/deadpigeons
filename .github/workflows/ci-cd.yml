@@ -1,0 +1,44 @@
+name: Build and Deploy to Fly.io
+
+on:
+  push:
+    branches:
+      - master  # trigger deployment on master push
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Setup .NET SDK
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 10.0.x
+
+      # 3. Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore server/api/api.csproj
+
+      # 4. Build project
+      - name: Build project
+        run: dotnet build server/api/api.csproj --configuration Release --no-restore
+
+      # 5. Publish project
+      - name: Publish project
+        run: dotnet publish server/api/api.csproj -c Release -o ./publish
+
+      # 6. Install Flyctl
+      - name: Install flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@v1
+
+      # 7. Login to Fly.io
+      - name: Fly.io Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          fly deploy --config fly.toml --remote-only
