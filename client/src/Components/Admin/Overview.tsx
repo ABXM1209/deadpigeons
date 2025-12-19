@@ -257,7 +257,7 @@ export function Overview() {
                                 <th>Player ID</th>
                                 <th>Selected Numbers</th>
                                 <th>Winning Numbers</th>
-                                <th>Winner?</th>
+                                <th>Results</th>
                             </tr>
                             </thead>
                             <tbody>

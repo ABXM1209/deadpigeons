@@ -76,7 +76,7 @@ export default function Navbar({ title }: NavbarProps) {
 
 
     return (
-        <div className="navbar bg-base-100 shadow-sm">
+        <div className="navbar sticky top-0 z-50 bg-base-100 shadow-sm">
             {/* Left side: menu + logo */}
             <div className="navbar-start">
 
@@ -106,21 +106,21 @@ export default function Navbar({ title }: NavbarProps) {
                             {/* User menu */}
                             {!isAdmin && user && (
                                 <>
-                                    <li><a onClick={() => navigate("/user-home")}>Homepage</a></li>
+                                    <li><a onClick={() => navigate("/user-home")}>My Page</a></li>
                                     <li><a onClick={() => navigate("/user-board")}>Board</a></li>
                                     <li><a onClick={() => navigate("/purchase")}>Purchase</a></li>
                                     <li><a onClick={() => navigate("/user-transaction-history")}>Transaction History</a></li>
-                                    <li><a onClick={() => navigate("/user-game-history")}>Game History</a></li>
+                                    <li><a onClick={() => navigate("/user-game-history")}>Board History</a></li>
                                 </>
                             )}
 
                             {/* Admin menu */}
                             {isAdmin && user && (
                                 <>
-                                    <li><a onClick={() => navigate("/admin-home")}>Homepage</a></li>
-                                    <li><a onClick={() => navigate("/overview")}>Overview</a></li>
-                                    <li><a onClick={() => navigate("/transaction")}>Transaction</a></li>
-                                    <li><a onClick={() => navigate("/admin-board")}>Admin Board</a></li>
+                                    <li><a onClick={() => navigate("/admin-home")}>Dashboard</a></li>
+                                    <li><a onClick={() => navigate("/overview")}>Board Overview</a></li>
+                                    <li><a onClick={() => navigate("/transaction")}>Transactions</a></li>
+                                    <li><a onClick={() => navigate("/admin-board")}>Create Board</a></li>
                                     <li><a onClick={() => navigate("/user-list")}>User List</a></li>
                                 </>
                             )}
