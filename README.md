@@ -33,7 +33,7 @@ http://localhost:5173
 
 ![Login Page](README_assets/login_view.png)
 
-### 3. Server-side setup
+### 3. Server-side setup 1
 
 First Remember to add your DbConnectionString and JWTtoken to api/appsettings.json file or .env file
 
@@ -51,8 +51,7 @@ First Remember to add your DbConnectionString and JWTtoken to api/appsettings.js
   },
   "AllowedHosts": "*"
 }
-
-
+```
 
 ```bash
 cd .\server\api\
