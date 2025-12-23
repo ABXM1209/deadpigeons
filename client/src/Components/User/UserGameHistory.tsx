@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { userAtom } from "../../utils/authAtoms";
 import Navbar from "../../Components/Navbar.tsx";
-import {GuessingNumberAnimation} from "../GuessingNumberAnimation.tsx";
+import { GuessingNumberAnimation } from "../GuessingNumberAnimation.tsx";
+import { finalUrl } from "../../baseUrl.ts";
 
 // ---------------------------
-// TYPE DEFINITIONS
+// TYPES
 // ---------------------------
 type Board = {
     id: string;
@@ -19,7 +20,6 @@ type UserBoard = {
     boardId: string;
     userId: string;
     guessingNumbers: number[];
-    weekRepeat?: number;
 };
 
 type UserBoardHistory = {
@@ -30,12 +30,25 @@ type UserBoardHistory = {
     date: string;
 };
 
+type AdminBoard = {
+    id: string;
+    boardId: string;
+    winningNumbers: number[];
+};
+
+type AdminBoardHistory = {
+    id: string;
+    boardId: string;
+    winningNumbers: number[];
+};
+
 type UserGameHistoryRow = {
     id: string;
     boardName: string;
     week: number;
     guessingNumbers: number[];
-    isWinner: boolean;
+    winningNumbers: number[] | null;
+    result: "Winner" | "Loser" | "-";
     status: "Open" | "Closed";
 };
 
@@ -57,39 +70,72 @@ export function UserGameHistory() {
 
         const fetchData = async () => {
             try {
-                const [boardsRes, userBoardsRes, historyRes] = await Promise.all([
-                    fetch("http://localhost:5139/api/Board"),
-                    fetch("http://localhost:5139/api/UserBoard"),
-                    fetch("http://localhost:5139/api/UserBoardHistory"),
+                const [
+                    boardsRes,
+                    userBoardsRes,
+                    historyRes,
+                    adminBoardRes,
+                    adminHistoryRes
+                ] = await Promise.all([
+                    fetch(finalUrl + "/api/Board"),
+                    fetch(finalUrl + "/api/UserBoard"),
+                    fetch(finalUrl + "/api/UserBoardHistory"),
+                    fetch(finalUrl + "/api/AdminBoard"),
+                    fetch(finalUrl + "/api/AdminBoardHistory"),
                 ]);
 
                 const boards: Board[] = await boardsRes.json();
                 const userBoards: UserBoard[] = await userBoardsRes.json();
                 const histories: UserBoardHistory[] = await historyRes.json();
+                const adminBoards: AdminBoard[] = await adminBoardRes.json();
+                const adminHistories: AdminBoardHistory[] = await adminHistoryRes.json();
 
-                // map boards
+                // Maps
                 const boardMap = new Map<string, Board>();
-                boards.forEach((b) => boardMap.set(b.id, b));
+                boards.forEach(b => boardMap.set(b.id, b));
 
-                // map user boards for current user
                 const userBoardMap = new Map<string, UserBoard>();
                 userBoards
-                    .filter((ub) => String(ub.userId) === String(user.userID))
-                    .forEach((ub) => userBoardMap.set(ub.boardId, ub));
+                    .filter(ub => String(ub.userId) === String(user.userID))
+                    .forEach(ub => userBoardMap.set(ub.boardId, ub));
 
-                // create rows
+                const adminBoardMap = new Map<string, number[]>();
+                adminBoards.forEach(a =>
+                    adminBoardMap.set(a.boardId, a.winningNumbers)
+                );
+
+                const adminHistoryMap = new Map<string, number[]>();
+                adminHistories.forEach(h =>
+                    adminHistoryMap.set(h.boardId, h.winningNumbers)
+                );
+
                 const rowsData: UserGameHistoryRow[] = histories
-                    .filter((h) => String(h.userId) === String(user.userID))
-                    .map((h) => {
+                    .filter(h => String(h.userId) === String(user.userID))
+                    .map(h => {
                         const board = boardMap.get(h.boardId);
                         const userBoard = userBoardMap.get(h.boardId);
 
+                        const winningNumbers =
+                            adminHistoryMap.get(h.boardId) ??
+                            adminBoardMap.get(h.boardId) ??
+                            null;
+
+                        let result: "Winner" | "Loser" | "-" = "-";
+
+                        if (winningNumbers && winningNumbers.length > 0 && userBoard) {
+                            const isWinner = winningNumbers.every(n =>
+                                userBoard.guessingNumbers.includes(n)
+                            );
+                            result = isWinner ? "Winner" : "Loser";
+                        }
+
                         return {
                             id: h.id,
-                            boardName: board?.name ?? `Board ${h.boardId}`,
+                            boardName: board?.name ?? `Board ${board?.weekNumber ?? ""}`,
                             week: board?.weekNumber ?? 0,
                             guessingNumbers: userBoard?.guessingNumbers ?? [],
-                            isWinner: h.isWinner,
+                            winningNumbers,
+                            result,
                             status: board?.isOpen ? "Open" : "Closed",
                         };
                     });
@@ -108,7 +154,7 @@ export function UserGameHistory() {
     // ---------------------------
     // FILTERING
     // ---------------------------
-    const filteredRows = rows.filter((r) => {
+    const filteredRows = rows.filter(r => {
         const matchesSearch =
             r.boardName.toLowerCase().includes(search.toLowerCase()) ||
             r.week.toString().includes(search);
@@ -117,8 +163,8 @@ export function UserGameHistory() {
             filterWin === "all"
                 ? true
                 : filterWin === "win"
-                    ? r.isWinner
-                    : !r.isWinner;
+                    ? r.result === "Winner"
+                    : r.result === "Loser";
 
         return matchesSearch && matchesWin;
     });
@@ -141,24 +187,25 @@ export function UserGameHistory() {
         <>
             <Navbar title="Board History" />
             <div className="m-3 p-3 rounded-xl bg-base-200 flex flex-col gap-4">
-                {/* Search + Filter */}
+
+                {/* Search & Filter */}
                 <div className="flex gap-5">
                     <input
                         className="input input-bordered w-1/3"
                         placeholder="Search by board or week..."
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={e => setSearch(e.target.value)}
                     />
                     <select
                         className="select select-bordered"
                         value={filterWin}
-                        onChange={(e) =>
+                        onChange={e =>
                             setFilterWin(e.target.value as "all" | "win" | "lose")
                         }
                     >
                         <option value="all">All</option>
                         <option value="win">Winners Only</option>
-                        <option value="lose">Non-Winners Only</option>
+                        <option value="lose">Losers Only</option>
                     </select>
                 </div>
 
@@ -172,25 +219,39 @@ export function UserGameHistory() {
                         <table className="table">
                             <thead>
                             <tr>
-                                <th>Board Name</th>
+                                <th>Board</th>
                                 <th>Week</th>
-                                <th>Guessing Numbers</th>
+                                <th>Your Numbers</th>
+                                <th>Winning Numbers</th>
                                 <th>Result</th>
                                 <th>Status</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {filteredRows.map((r) => (
+                            {filteredRows.map(r => (
                                 <tr key={r.id}>
                                     <td>{r.boardName}</td>
                                     <td>{r.week}</td>
                                     <td>
-                                        {<GuessingNumberAnimation guessingNumbers={r.guessingNumbers} />}
+                                        <GuessingNumberAnimation
+                                            guessingNumbers={r.guessingNumbers}
+                                        />
+                                    </td>
+                                    <td>
+                                        {r.winningNumbers
+                                            ? <GuessingNumberAnimation guessingNumbers={r.winningNumbers} />
+                                            : "-"}
                                     </td>
                                     <td
-                                        className={r.isWinner ? "text-green-500 font-bold" : ""}
+                                        className={
+                                            r.result === "Winner"
+                                                ? "text-green-600 font-bold"
+                                                : r.result === "Loser"
+                                                    ? "text-red-500 font-bold"
+                                                    : ""
+                                        }
                                     >
-                                        {r.isWinner ? "Winner" : "Not Winner"}
+                                        {r.result}
                                     </td>
                                     <td>{r.status}</td>
                                 </tr>

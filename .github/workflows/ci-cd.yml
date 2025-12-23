@@ -61,14 +61,3 @@ jobs:
           git reset --hard $GITHUB_SHA
           git push https://${PAT_TOKEN}@github.com/${{ github.repository }} main --force
 
-      # 10. Install Flyctl
-      - name: Install flyctl
-        uses: superfly/flyctl-actions/setup-flyctl@v1
-        with:
-          version: latest
-
-      # 11. Deploy to Fly.io
-      - name: Deploy to Fly.io
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-        run: flyctl deploy --config fly.toml --remote-only

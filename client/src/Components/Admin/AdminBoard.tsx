@@ -162,12 +162,12 @@ export function AdminBoard() {
                 const existingHistory =
                     adminHistory.find(h => h.boardId === boardId) ?? null;
 
-                const historyPayload: AdminBoardHistory = {
+                const historyPayload = {
                     id: existingHistory?.id ?? uuidv4(),
-                    boardId,
-                    winningNumbers: selected,
-                    weekNumber: currentWeek,
-                    isOpen: false
+                    boardId: boardId,
+                    totalWinners: 0,          // backend can update later
+                    winningUsers: [],         // empty initially
+                    date: new Date().toISOString()
                 };
 
                 await fetch(

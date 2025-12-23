@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import React, { useState } from "react";
 import Navbar from "./Navbar.tsx";
 import { useSetAtom } from "jotai";
 import { userAtom } from "../utils/authAtoms.tsx";
-import {finalUrl} from '../baseUrl.ts'
+import { finalUrl } from "../baseUrl.ts";
 
 export function Login() {
     const navigate = useNavigate();
@@ -11,7 +11,7 @@ export function Login() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState(""); // To show error messages
+    const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
     async function handleLogin(e?: React.FormEvent) {
@@ -30,15 +30,20 @@ export function Login() {
             const data = await res.json();
 
             if (!res.ok) {
-                // Handle errors from backend
-                if (data.error === "USER_NOT_FOUND") {
-                    setError("User does not exist. Please sign up first.");
-                } else if (data.error === "WRONG_PASSWORD") {
-                    setError(
-                        "Password is incorrect. Contact support to reset your password."
-                    );
-                } else {
-                    setError("Login failed. Please try again.");
+                // Backend returns: REQUEST_BODY_IS_NULL, EMAIL_OR_PASSWORD_EMPTY, INVALID_PASSWORD, USER_NOT_FOUND
+                switch (data.error) {
+                    case "USER_NOT_FOUND":
+                        setError("User does not exist. Please sign up first.");
+                        break;
+                    case "INVALID_PASSWORD":
+                        setError("Password is incorrect. Please try again.");
+                        break;
+                    case "EMAIL_OR_PASSWORD_EMPTY":
+                        setError("Email or password cannot be empty.");
+                        break;
+                    default:
+                        setError("Login failed. Please try again.");
+                        break;
                 }
                 setLoading(false);
                 return;
@@ -47,13 +52,14 @@ export function Login() {
             // Login successful
             // data should contain: { userID, username, email ,role}
             setUser({
-                userID: data.userID,
-                username: data.username,
-                email: data.email,
-                role: data.role, // 'admin' or 'user'
-                balance: data.balance,
-                isActive: data.isActive,
-                phone: data.phone,
+                userID: data.userID ?? "",           // may be null for admin
+                username: data.username ?? "",
+                email: data.username ?? "",          // fallback, backend doesn't return email separately
+                role: data.role ?? "",
+                balance: 0,                          // backend does not return balance
+                isActive: true,                      // default true
+                phone: "",                            // backend does not return phone
+                token: data.token ?? "",
             });
 
             // Redirect based on role
@@ -63,7 +69,7 @@ export function Login() {
                 navigate("/user-home");
             }
         } catch (err) {
-            console.error(err);
+            console.error("Network error:", err);
             setError("Network error. Please try again later.");
         } finally {
             setLoading(false);
@@ -71,48 +77,41 @@ export function Login() {
     }
 
     return (
-        <>
-            <div className="flex flex-col h-screen">
-                <Navbar title="Login" />
-                <div className="flex flex-col justify-center items-center flex-1 min-h-0">
-                    <label className="label text-4xl mb-5">User Login</label>
+        <div className="flex flex-col h-screen">
+            <Navbar title="Login" />
+            <div className="flex flex-col justify-center items-center flex-1 min-h-0">
+                <h1 className="text-4xl mb-5 font-bold">User Login</h1>
 
-                    <form
-                        onSubmit={handleLogin}
-                        className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4"
+                <fieldset className="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4">
+                    <label className="label">Email</label>
+                    <input
+                        type="email"
+                        className="input"
+                        placeholder="example123@gmail.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+
+                    <label className="label mt-3">Password</label>
+                    <input
+                        type="password"
+                        className="input"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+
+                    {error && <p className="text-red-600 mt-2 text-sm">{error}</p>}
+
+                    <button
+                        className="btn btn-default btn-outline mt-5 w-full"
+                        onClick={handleLogin}
+                        disabled={loading}
                     >
-                        <label className="label">Email</label>
-                        <input
-                            type="email"
-                            className="input"
-                            placeholder="example123@gmail.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-
-                        <label className="label">Password</label>
-                        <input
-                            type="password"
-                            className="input"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-
-                        {error && (
-                            <p className="text-red-600 mt-2 text-sm">{error}</p>
-                        )}
-
-                        <button
-                            type="submit"
-                            className="btn btn-default btn-outline mt-5"
-                            disabled={loading}
-                        >
-                            {loading ? "Logging in..." : "Login"}
-                        </button>
-                    </form>
-                </div>
+                        {loading ? "Logging in..." : "Login"}
+                    </button>
+                </fieldset>
             </div>
-        </>
+        </div>
     );
 }

@@ -8,6 +8,7 @@ export type User = {
     role: "user" | "admin";
     balance?: number;
     isActive : boolean;
+    token: string;
 } | null;
 
 // This atom will automatically persist in localStorage under the key "user"

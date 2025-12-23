@@ -41,7 +41,7 @@ export function Purchase() {
             userId: user.userID,
             transactionid: transactionField,
             status: 1,
-            balance: Number(user.balance),
+            balance: 0,
             transactionDate: new Date().toISOString(),
         };
 

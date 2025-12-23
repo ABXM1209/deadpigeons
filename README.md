@@ -34,6 +34,26 @@ http://localhost:5173
 ![Login Page](README_assets/login_view.png)
 
 ### 3. Server-side setup
+
+First Remember to add your DbConnectionString and JWTtoken to api/appsettings.json file or .env file
+
+```bash
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AppOptions": {
+    "JwtSecret": "Add your JwtSecret in Here",
+    "DbConnectionString": "Add your DbConnectionString in Here"
+  },
+  "AllowedHosts": "*"
+}
+
+
+
 ```bash
 cd .\server\api\
 dotnet build

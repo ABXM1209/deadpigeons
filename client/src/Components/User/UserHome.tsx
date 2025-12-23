@@ -23,7 +23,8 @@ export function UserHome() {
                     role: user.role,
                     phone: u.phone ?? user.phone,
                     balance: u.balance ?? user.balance ?? 0,
-                    isActive: u.isactive ?? false, 
+                    isActive: u.isactive ?? false,
+                    token: u.token ?? user.token ?? "",
                 });
                 console.log(u);
             } catch (err) {

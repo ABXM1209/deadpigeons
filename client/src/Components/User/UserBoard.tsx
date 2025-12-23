@@ -4,36 +4,54 @@ import Navbar from "../Navbar";
 import { userAtom } from "../../utils/authAtoms";
 import { finalUrl } from "../../baseUrl";
 import { Toast } from "../../utils/Toast";
-import { getCurrentWeek } from "../../utils/week";
+import { v4 as uuidv4 } from "uuid";
+
 
 /* =======================
    Types
 ======================= */
-
 interface Board {
     id: string;
     isOpen: boolean;
     weekNumber: number;
 }
 
-interface UserBoardHistory {
-    id: string;
-    userId: string;
-    boardId: string;
-}
-
 type BlockReason =
     | "INACTIVE_ACCOUNT"
     | "BOARD_CLOSED"
     | "ALREADY_PLAYED"
+    | "INSUFFICIENT_BALANCE"
     | null;
+
+/* =======================
+   Week Calculation
+======================= */
+function getBoardWeekSunday5PM(): number {
+    const now = new Date();
+    const dkNow = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Copenhagen" }));
+
+    const temp = new Date(dkNow);
+    temp.setHours(0, 0, 0, 0);
+    temp.setDate(temp.getDate() + 3 - ((temp.getDay() + 6) % 7));
+
+    const week1 = new Date(temp.getFullYear(), 0, 4);
+    const isoWeek =
+        1 +
+        Math.round(
+            ((temp.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7
+        );
+
+    const isSunday = dkNow.getDay() === 0;
+    const afterFivePM = dkNow.getHours() >= 17;
+
+    return isSunday && afterFivePM ? isoWeek + 1 : isoWeek;
+}
 
 /* =======================
    Component
 ======================= */
-
 export function UserBoard() {
-    const [user] = useAtom(userAtom);
+    const [user, setUser] = useAtom(userAtom);
 
     const [board, setBoard] = useState<Board | null>(null);
     const [loading, setLoading] = useState(true);
@@ -49,11 +67,11 @@ export function UserBoard() {
 
     const min = 5;
     const max = 8;
-    const currentWeek = getCurrentWeek();
+    const currentWeek = getBoardWeekSunday5PM();
 
     /* =======================
-       Fetch current board
-    ======================= */
+       Fetch Board
+    ======================== */
     useEffect(() => {
         const fetchBoard = async () => {
             try {
@@ -63,59 +81,47 @@ export function UserBoard() {
                 setBoard(current);
             } catch {
                 setBoard(null);
+            } finally {
+                setLoading(false);
             }
         };
-
         fetchBoard();
     }, [currentWeek]);
 
     /* =======================
-       Check play status
-    ======================= */
+       Check User Status
+    ======================== */
     useEffect(() => {
-        if (!user || !board) {
-            setLoading(false);
-            return;
-        }
+        if (!user || !board) return;
 
         const checkStatus = async () => {
             try {
-                /* Account inactive */
                 if (!user.isActive) {
                     setBlockReason("INACTIVE_ACCOUNT");
-                    setLoading(false);
                     return;
                 }
 
-                /* Board closed */
                 if (!board.isOpen) {
                     setBlockReason("BOARD_CLOSED");
-                    setLoading(false);
                     return;
                 }
 
-                /* Check if user already played this board */
                 const res = await fetch(`${finalUrl}/api/UserBoardHistory`);
-                if (!res.ok) throw new Error("Failed to fetch history");
+                const history: { userId: string; boardId: string }[] = await res.json();
 
-                const history: UserBoardHistory[] = await res.json();
-
-                const playedThisBoard = history.some(
+                const alreadyPlayed = history.some(
                     h => h.userId === user.userID && h.boardId === board.id
                 );
 
-                if (playedThisBoard) {
+                if (alreadyPlayed) {
                     setHasPlayed(true);
                     setBlockReason("ALREADY_PLAYED");
                 } else {
                     setHasPlayed(false);
                     setBlockReason(null);
                 }
-            } catch (error) {
-                console.error(error);
+            } catch {
                 setBlockReason(null);
-            } finally {
-                setLoading(false);
             }
         };
 
@@ -124,21 +130,23 @@ export function UserBoard() {
 
     /* =======================
        Helpers
-    ======================= */
-
-    function showToast(message: string, type: "success" | "error") {
+    ======================== */
+    const showToast = (message: string, type: "success" | "error") => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 2500);
-    }
+    };
 
-    function toggle(n: number) {
+    const toggleNumber = (n: number) => {
         setSelected(prev => {
             if (prev.includes(n)) return prev.filter(x => x !== n);
             if (prev.length >= max) return prev;
             return [...prev, n];
         });
-    }
+    };
 
+    /* =======================
+       Price Calculation
+    ======================== */
     const price = (() => {
         switch (selected.length) {
             case 5: return 20;
@@ -150,76 +158,105 @@ export function UserBoard() {
     })();
 
     const canSubmitNumbers = selected.length >= min && selected.length <= max;
-
-    const canPlay =
-        !!user &&
-        user.isActive &&
-        !!board &&
-        board.isOpen &&
-        !hasPlayed;
+    const canPlay = !!user && user.isActive && !!board && board.isOpen && !hasPlayed;
 
     /* =======================
-       Submit
-    ======================= */
-    async function submitGuessing() {
-        if (!canPlay || !canSubmitNumbers || !user || !board) return;
+       Submit Board + Subtract Balance
+    ======================== */
+    const submitBoard = async () => {
+        if (!user || !board || !canSubmitNumbers) return;
+
+        if (!user.balance || user.balance < price) {
+            setBlockReason("INSUFFICIENT_BALANCE");
+            showToast("Insufficient balance", "error");
+            return;
+        }
 
         try {
-            const payload = {
-                boardId: board.id,
-                userId: user.userID,
-                guessingNumbers: selected,
-                weekRepeat: repeat ? repeatWeeks : 0,
-                weekNumber: currentWeek
-            };
+            // 1️⃣ Subtract balance
+            const newBalance = user.balance - price;
+            const balanceRes = await fetch(`${finalUrl}/api/users/${user.userID}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    id: user.userID,
+                    name: user.username,
+                    phone: user.phone,
+                    email: user.email,
+                    balance: newBalance,
+                    isActive: user.isActive,
+                }),
+            });
+            if (!balanceRes.ok) throw new Error("Balance update failed");
 
-            await fetch(`${finalUrl}/api/UserBoard`, {
+            const newBoardId = uuidv4();
+            // 2️⃣ Submit board
+            const boardRes = await fetch(`${finalUrl}/api/UserBoard`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    id : newBoardId,
+                    boardId: board.id,
+                    userId: user.userID,
+                    guessingNumbers: selected,
+                    weekRepeat: repeat ? repeatWeeks : 0
+                }),
             });
+            if (!boardRes.ok) throw new Error("Board submission failed");
 
-            showToast("Board submitted successfully!", "success");
+            try {
+                const newDate = new Date().toISOString();
+                const newGameHistoryID = uuidv4();
+                await fetch(`${finalUrl}/api/UserBoardHistory`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        id : newGameHistoryID,
+                        userId: user.userID,
+                        boardId: board.id,
+                        isWinner: false,
+                        date: newDate
+                    }),
+                });
+            }catch (e) {
+                console.error(e);
+            }
+            
 
+            // 3️⃣ Update frontend user balance
+            setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
+
+            // 4️⃣ Reset selections
             setHasPlayed(true);
             setBlockReason("ALREADY_PLAYED");
             setSelected([]);
             setRepeat(false);
             setRepeatWeeks(1);
-        } catch {
-            showToast("Failed to submit board", "error");
+
+            showToast("Board submitted successfully!", "success");
+
+        } catch (err) {
+            console.error(err);
+            showToast("Transaction failed", "error");
         }
-    }
+    };
 
     /* =======================
-       Block message
-    ======================= */
+       Blocked Messages
+    ======================== */
     const renderBlockedMessage = () => {
         if (!blockReason) return null;
 
         const map = {
-            INACTIVE_ACCOUNT: {
-                icon: "🚫",
-                title: "Account Inactive",
-                text: "Please make your first purchase or contact support."
-            },
-            BOARD_CLOSED: {
-                icon: "⛔",
-                title: "Board Closed",
-                text: "You can't play on this board."
-            },
-            ALREADY_PLAYED: {
-                icon: "✅",
-                title: "Already Played",
-                text: "You have already played this board."
-            }
+            INACTIVE_ACCOUNT: { title: "Account Not Active", text: "Make your first purchase or contact support." },
+            BOARD_CLOSED: { title: "Board Closed", text: "Please wait for the next week." },
+            ALREADY_PLAYED: { title: "Already Played", text: "You already played this board." },
+            INSUFFICIENT_BALANCE: { title: "Insufficient Balance", text: "Please top up your balance." },
         };
 
         const m = map[blockReason];
-
         return (
             <div className="bg-base-200 border border-base-300 rounded-xl p-5 text-center max-w-md mx-auto mt-6">
-                <div className="text-2xl mb-2">{m.icon}</div>
                 <h3 className="text-lg font-bold mb-1">{m.title}</h3>
                 <p className="text-sm opacity-80">{m.text}</p>
             </div>
@@ -228,51 +265,81 @@ export function UserBoard() {
 
     /* =======================
        Render
-    ======================= */
+    ======================== */
     return (
         <>
             <Navbar title={`Board — Week ${currentWeek}`} />
 
-            {toast && (
-                <Toast
-                    message={toast.message}
-                    type={toast.type}
-                    onClose={() => setToast(null)}
-                />
-            )}
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+            <div className="flex justify-center mb-3">
+                <div className="text-center text-sm bg-base-200 px-4 py-2 rounded-xl opacity-80">
+                    Board renews every Sunday at 17:00 (Danish time)
+                </div>
+            </div>
 
             {loading ? (
-                <div className="text-center mt-10 opacity-70">
-                    Loading...
-                </div>
+                <div className="text-center mt-10 opacity-70">Loading board...</div>
             ) : (
                 <>
                     {!canPlay && renderBlockedMessage()}
 
-                    <div className={`${canPlay ? "" : "opacity-40 pointer-events-none"}`}>
-                        <div className="flex justify-center mt-5 mb-4">
+                    {/* Main Board Container */}
+                    <div className={`transition-opacity ${!canPlay ? "opacity-50 pointer-events-none" : ""}`}>
+                        {/* Selected & Price */}
+                        <div className="flex justify-center mb-4">
                             <div className="p-4 rounded-xl bg-base-200 text-center">
-                                <p className="text-xl font-semibold">
-                                    Selected: {selected.length} / {max}
-                                </p>
-                                <p className="text-lg">
-                                    Price: <b>{price} DKK</b>
-                                </p>
+                                <p className="text-xl font-semibold">Selected: {selected.length} / {max}</p>
+                                <p className="text-lg">Price: <span className="font-bold">{price} DKK</span></p>
+                                <p className="text-sm opacity-70">(Select 5–8 numbers)</p>
                             </div>
                         </div>
 
+                        {/* Repeat Weekly */}
                         <div className="flex justify-center mb-5">
+                            <div className="bg-base-200 p-4 rounded-xl w-full max-w-[350px]">
+                                <label className="flex items-center justify-between cursor-pointer">
+                                    <span className="font-medium">Repeat weekly</span>
+                                    <input
+                                        type="checkbox"
+                                        className="toggle"
+                                        checked={repeat}
+                                        onChange={e => setRepeat(e.target.checked)}
+                                    />
+                                </label>
+
+                                {repeat && (
+                                    <div className="mt-3 flex items-center justify-between">
+                                        <span className="text-sm">Repeat for</span>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                className="btn btn-sm btn-outline"
+                                                onClick={() => setRepeatWeeks(p => Math.max(1, p - 1))}
+                                            >-</button>
+                                            <div className="px-4 py-1 rounded-lg bg-base-100 border">{repeatWeeks}</div>
+                                            <button
+                                                className="btn btn-sm btn-outline"
+                                                onClick={() => setRepeatWeeks(p => p + 1)}
+                                            >+</button>
+                                        </div>
+                                        <span className="text-sm">weeks</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Number Grid */}
+                        <div className="flex justify-center">
                             <div className="grid grid-cols-4 gap-2">
                                 {Array.from({ length: 16 }, (_, i) => {
                                     const n = i + 1;
+                                    const isSelected = selected.includes(n);
                                     return (
                                         <div
                                             key={n}
-                                            onClick={() => toggle(n)}
+                                            onClick={() => toggleNumber(n)}
                                             className={`w-18 h-18 flex items-center justify-center rounded-xl cursor-pointer border
-                                            ${selected.includes(n)
-                                                ? "bg-base-300 font-bold"
-                                                : "bg-base-100 hover:bg-base-200"}`}
+                                            ${isSelected ? "bg-base-300 font-bold" : "bg-base-100 hover:bg-base-200"}`}
                                         >
                                             {n}
                                         </div>
@@ -281,11 +348,12 @@ export function UserBoard() {
                             </div>
                         </div>
 
+                        {/* Submit Button */}
                         <div className="flex justify-center mt-7">
                             <button
-                                className="btn btn-outline btn-lg rounded-xl mb-5"
+                                className="btn btn-outline btn-lg rounded-xl"
                                 disabled={!canPlay || !canSubmitNumbers}
-                                onClick={submitGuessing}
+                                onClick={submitBoard}
                             >
                                 Submit ({price} DKK)
                             </button>

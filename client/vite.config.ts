@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
                 "/api": {
                     target:
                         mode === "production"
-                            ? "https://server-small-dawn-3376.fly.dev"
+                            ? "https://deadpigeon-api.fly.dev"
                             : "http://localhost:5139",
                     changeOrigin: true,
                     secure: false,
