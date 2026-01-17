@@ -12,7 +12,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
-
+        services.AddControllers();
         services.AddScoped<MyDbContext>(sp =>
         {
             var fixture = sp.GetRequiredService<PostgresFixture>();

@@ -12,9 +12,8 @@ namespace tests.Controllers;
 public class UserBoardHistoryTests : TestBase
 {
     public UserBoardHistoryTests(
-        IServiceProvider services,
         PostgresFixture fixture)
-        : base(services, fixture) { }
+        : base(fixture) { }
 
     [Fact]
     public async Task GetByUserId_ShouldReturnOrderedHistory()
@@ -25,8 +24,8 @@ public class UserBoardHistoryTests : TestBase
         var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
 
         db.UserBoardHistory.AddRange(
-            new UserBoardHistory { UserId = userId, Date = DateTime.UtcNow },
-            new UserBoardHistory { UserId = userId, Date = DateTime.UtcNow.AddDays(-1) }
+            new UserBoardHistory { Id = Guid.NewGuid().ToString(), UserId = userId, BoardId = "b1", Date = DateTime.UtcNow },
+            new UserBoardHistory { Id = Guid.NewGuid().ToString(), UserId = userId, BoardId = "b1", Date = DateTime.UtcNow.AddDays(-1) }
         );
 
         await db.SaveChangesAsync();
@@ -39,4 +38,5 @@ public class UserBoardHistoryTests : TestBase
 
         Assert.True(list[0].Date > list[1].Date);
     }
+
 }

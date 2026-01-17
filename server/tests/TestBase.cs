@@ -1,25 +1,34 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using tests.Containers;
 
-namespace tests;
-
-public abstract class TestBase
-{
-    protected readonly IServiceProvider Services;
-    protected readonly PostgresFixture Fixture;
-
-    protected TestBase(
-        IServiceProvider services,
-        PostgresFixture fixture)
+namespace tests
+{public abstract class TestBase
     {
-        Services = services;
-        Fixture = fixture;
-    }
+        protected readonly PostgresFixture Fixture;
 
-    protected T GetController<T>() where T : ControllerBase
-    {
-        var scope = Services.CreateScope();
-        return ActivatorUtilities.CreateInstance<T>(scope.ServiceProvider);
+        protected TestBase(PostgresFixture fixture)
+        {
+            Fixture = fixture;
+        }
+
+        protected IServiceProvider Services => Fixture.Services;
+
+        protected T GetController<T>() where T : ControllerBase
+        {
+            var scope = Services.CreateScope();
+            var controller = ActivatorUtilities.CreateInstance<T>(scope.ServiceProvider);
+
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    RequestServices = scope.ServiceProvider
+                }
+            };
+
+            return controller;
+        }
     }
 }

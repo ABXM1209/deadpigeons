@@ -30,7 +30,6 @@ export function Login() {
             const data = await res.json();
 
             if (!res.ok) {
-                // Backend returns: REQUEST_BODY_IS_NULL, EMAIL_OR_PASSWORD_EMPTY, INVALID_PASSWORD, USER_NOT_FOUND
                 switch (data.error) {
                     case "USER_NOT_FOUND":
                         setError("User does not exist. Please sign up first.");
@@ -50,17 +49,21 @@ export function Login() {
             }
 
             // Login successful
-            // data should contain: { userID, username, email ,role}
+            if (data.token) {
+                localStorage.setItem("token", data.token);
+            }
+
             setUser({
-                userID: data.userID ?? "",           // may be null for admin
+                userID: data.userID ?? "",
                 username: data.username ?? "",
-                email: data.username ?? "",          // fallback, backend doesn't return email separately
+                email: data.email ?? "",
                 role: data.role ?? "",
-                balance: 0,                          // backend does not return balance
-                isActive: true,                      // default true
-                phone: "",                            // backend does not return phone
+                balance: 0,
+                isActive: true,
+                phone: "",
                 token: data.token ?? "",
             });
+
 
             // Redirect based on role
             if (data.role === "admin") {

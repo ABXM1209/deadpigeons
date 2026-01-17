@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-
+namespace efscaffold.Models;
 public class User
 {
     [Key]

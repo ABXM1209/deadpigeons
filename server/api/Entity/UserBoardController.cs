@@ -1,10 +1,12 @@
 ﻿using efscaffold;
 using efscaffold.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Entity;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class UserBoardController : ControllerBase
@@ -17,6 +19,7 @@ public class UserBoardController : ControllerBase
     }
 
     // GET: /api/userboard
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -25,6 +28,7 @@ public class UserBoardController : ControllerBase
     }
 
     // GET: /api/userboard/{id}
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(string id)
     {
@@ -36,6 +40,7 @@ public class UserBoardController : ControllerBase
     }
 
     // POST: /api/userboard
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] UserBoard userBoard)
     {
@@ -51,6 +56,7 @@ public class UserBoardController : ControllerBase
     }
 
     // PUT: /api/userboard/{id}
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(string id, [FromBody] UserBoard userBoard)
     {
@@ -73,6 +79,7 @@ public class UserBoardController : ControllerBase
     }
 
     // DELETE: /api/userboard/{id}
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {

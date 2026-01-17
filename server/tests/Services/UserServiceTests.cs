@@ -9,20 +9,26 @@ namespace tests.Services;
 [Collection("Postgres")]
 public class UserServiceTests : TestBase
 {
-    private readonly IUserService _userService;
+    private readonly PostgresFixture _fixture;
 
-    public UserServiceTests(
-        IServiceProvider services,
-        PostgresFixture fixture)
-        : base(services, fixture)
+    public UserServiceTests(PostgresFixture fixture)
+        : base(fixture)
     {
-        _userService = services.GetRequiredService<IUserService>();
+        _fixture = fixture;
     }
-    
+
+    private IUserService GetUserService()
+    {
+        // Make sure you get a single instance of all services inside a scope
+        var scope = _fixture.Services.CreateScope();
+        return scope.ServiceProvider.GetRequiredService<IUserService>();
+    }
+
     [Fact]
     public async Task CreateAsync_ShouldCreateUser_WhenDataIsValid()
     {
-        // Arrange
+        var service = GetUserService();
+
         var dto = new CreateUserDto
         {
             Name = "Ahmed",
@@ -33,10 +39,8 @@ public class UserServiceTests : TestBase
             Isactive = true
         };
 
-        // Act
-        var user = await _userService.CreateAsync(dto);
+        var user = await service.CreateAsync(dto);
 
-        // Assert
         Assert.NotNull(user);
         Assert.Equal(dto.Email, user.Email);
         Assert.NotEqual(dto.Password, user.Password); // hashed
@@ -45,8 +49,9 @@ public class UserServiceTests : TestBase
     [Fact]
     public async Task GetByIdAsync_ShouldReturnUser_WhenUserExists()
     {
-        // Arrange
-        var user = await _userService.CreateAsync(new CreateUserDto
+        var service = GetUserService();
+
+        var user = await service.CreateAsync(new CreateUserDto
         {
             Name = "Test",
             Phone = "000",
@@ -56,26 +61,24 @@ public class UserServiceTests : TestBase
             Isactive = true
         });
 
-        // Act
-        var found = await _userService.GetByIdAsync(user.Id);
-
-        // Assert
+        var found = await service.GetByIdAsync(user.Id);
         Assert.Equal(user.Id, found.Id);
     }
 
     [Fact]
     public async Task GetByIdAsync_ShouldThrow_WhenUserDoesNotExist()
     {
-        // Act & Assert
+        var service = GetUserService();
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _userService.GetByIdAsync("non-existing-id"));
+            service.GetByIdAsync("non-existing-id"));
     }
 
     [Fact]
     public async Task UpdateAsync_ShouldUpdateUser_WhenUserExists()
     {
-        // Arrange
-        var user = await _userService.CreateAsync(new CreateUserDto
+        var service = GetUserService();
+
+        var user = await service.CreateAsync(new CreateUserDto
         {
             Name = "Old",
             Phone = "1",
@@ -91,13 +94,12 @@ public class UserServiceTests : TestBase
             Phone = "2",
             Email = "new@test.com",
             Balance = 50,
-            Isactive = false
+            Isactive = false,
+            Password = "newpass"
         };
 
-        // Act
-        var updated = await _userService.UpdateAsync(user.Id, updateDto);
+        var updated = await service.UpdateAsync(user.Id, updateDto);
 
-        // Assert
         Assert.Equal("New", updated.Name);
         Assert.Equal(50, updated.Balance);
         Assert.False(updated.Isactive);
@@ -106,8 +108,9 @@ public class UserServiceTests : TestBase
     [Fact]
     public async Task DeleteAsync_ShouldRemoveUser_WhenUserExists()
     {
-        // Arrange
-        var user = await _userService.CreateAsync(new CreateUserDto
+        var service = GetUserService();
+
+        var user = await service.CreateAsync(new CreateUserDto
         {
             Name = "Delete",
             Phone = "9",
@@ -117,11 +120,9 @@ public class UserServiceTests : TestBase
             Isactive = true
         });
 
-        // Act
-        await _userService.DeleteAsync(user.Id);
+        await service.DeleteAsync(user.Id);
 
-        // Assert
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _userService.GetByIdAsync(user.Id));
+            service.GetByIdAsync(user.Id));
     }
 }

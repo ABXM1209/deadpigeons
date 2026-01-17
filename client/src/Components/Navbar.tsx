@@ -162,10 +162,10 @@ export default function Navbar({ title }: NavbarProps) {
                 <div className="text-sm opacity-70">{currentTime}</div>
 
                 {/* Theme toggle (login page only) */}
-                    <>
-                        <Divider />
-                        <ThemeToggle />
-                    </>
+                <>
+                    <Divider />
+                    <ThemeToggle />
+                </>
 
                 {/* Divider before logout */}
                 {!isLoginPage && <Divider />}
@@ -175,6 +175,7 @@ export default function Navbar({ title }: NavbarProps) {
                     <button
                         className="btn btn-ghost btn-circle hover:bg-base-200"
                         onClick={() => {
+                            localStorage.removeItem("token");
                             setUser(null);
                             navigate("/");
                         }}

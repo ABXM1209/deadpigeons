@@ -36,10 +36,13 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public IActionResult Login([FromBody] LoginRequest request)
     {
-        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+        if (request == null)
+            return BadRequest(new { error = "INVALID_REQUEST" });
+
+        if (string.IsNullOrWhiteSpace(request.Email) ||
+            string.IsNullOrWhiteSpace(request.Password))
             return BadRequest(new { error = "EMAIL_OR_PASSWORD_EMPTY" });
 
-        // Check Admins
         var admin = _db.Admins.FirstOrDefault(a => a.Email == request.Email);
         if (admin != null)
         {
@@ -55,7 +58,6 @@ public class AuthController : ControllerBase
             });
         }
 
-        // Check Users
         var user = _db.Users.FirstOrDefault(u => u.Email == request.Email);
         if (user != null)
         {
@@ -65,7 +67,7 @@ public class AuthController : ControllerBase
             var token = _jwtService.GenerateToken(user.Email, "user");
             return Ok(new LoginResponse
             {
-                UserID =  user.Id,
+                UserID = user.Id,
                 Username = user.Email,
                 Role = "user",
                 Token = token
@@ -74,4 +76,5 @@ public class AuthController : ControllerBase
 
         return BadRequest(new { error = "User not found" });
     }
+
 }

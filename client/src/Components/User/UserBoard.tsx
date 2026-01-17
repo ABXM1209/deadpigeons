@@ -6,7 +6,6 @@ import { finalUrl } from "../../baseUrl";
 import { Toast } from "../../utils/Toast";
 import { v4 as uuidv4 } from "uuid";
 
-
 /* =======================
    Types
 ======================= */
@@ -70,12 +69,27 @@ export function UserBoard() {
     const currentWeek = getBoardWeekSunday5PM();
 
     /* =======================
+       Authenticated fetch helper
+    ======================== */
+    const authFetch = async (url: string, options: RequestInit = {}) => {
+        const token = user?.token || localStorage.getItem("token");
+        return fetch(url, {
+            ...options,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+                ...(options.headers || {}),
+            },
+        });
+    };
+
+    /* =======================
        Fetch Board
     ======================== */
     useEffect(() => {
         const fetchBoard = async () => {
             try {
-                const res = await fetch(`${finalUrl}/api/Board`);
+                const res = await authFetch(`${finalUrl}/api/Board`);
                 const boards: Board[] = await res.json();
                 const current = boards.find(b => b.weekNumber === currentWeek) ?? null;
                 setBoard(current);
@@ -106,7 +120,7 @@ export function UserBoard() {
                     return;
                 }
 
-                const res = await fetch(`${finalUrl}/api/UserBoardHistory`);
+                const res = await authFetch(`${finalUrl}/api/UserBoardHistory`);
                 const history: { userId: string; boardId: string }[] = await res.json();
 
                 const alreadyPlayed = history.some(
@@ -133,7 +147,7 @@ export function UserBoard() {
     ======================== */
     const showToast = (message: string, type: "success" | "error") => {
         setToast({ message, type });
-        setTimeout(() => setToast(null), 2500);
+        setTimeout(() => setToast(null), 3500);
     };
 
     const toggleNumber = (n: number) => {
@@ -173,12 +187,12 @@ export function UserBoard() {
         }
 
         try {
-            // 1️⃣ Subtract balance
             const newBalance = user.balance - price;
-            const balanceRes = await fetch(`${finalUrl}/api/users/${user.userID}`, {
+
+            // 1️⃣ Update balance
+            const balanceRes = await authFetch(`${finalUrl}/api/users/${user.userID}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     id: user.userID,
                     name: user.username,
                     phone: user.phone,
@@ -190,12 +204,12 @@ export function UserBoard() {
             if (!balanceRes.ok) throw new Error("Balance update failed");
 
             const newBoardId = uuidv4();
+
             // 2️⃣ Submit board
-            const boardRes = await fetch(`${finalUrl}/api/UserBoard`, {
+            const boardRes = await authFetch(`${finalUrl}/api/UserBoard`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    id : newBoardId,
+                    id: newBoardId,
                     boardId: board.id,
                     userId: user.userID,
                     guessingNumbers: selected,
@@ -204,29 +218,28 @@ export function UserBoard() {
             });
             if (!boardRes.ok) throw new Error("Board submission failed");
 
+            // 3️⃣ Add to history
             try {
                 const newDate = new Date().toISOString();
                 const newGameHistoryID = uuidv4();
-                await fetch(`${finalUrl}/api/UserBoardHistory`, {
+                await authFetch(`${finalUrl}/api/UserBoardHistory`, {
                     method: "POST",
-                    headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({
-                        id : newGameHistoryID,
+                        id: newGameHistoryID,
                         userId: user.userID,
                         boardId: board.id,
                         isWinner: false,
                         date: newDate
                     }),
                 });
-            }catch (e) {
+            } catch (e) {
                 console.error(e);
             }
-            
 
-            // 3️⃣ Update frontend user balance
+            // 4️⃣ Update frontend user balance
             setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
 
-            // 4️⃣ Reset selections
+            // 5️⃣ Reset selections
             setHasPlayed(true);
             setBlockReason("ALREADY_PLAYED");
             setSelected([]);
@@ -234,7 +247,6 @@ export function UserBoard() {
             setRepeatWeeks(1);
 
             showToast("Board submitted successfully!", "success");
-
         } catch (err) {
             console.error(err);
             showToast("Transaction failed", "error");
