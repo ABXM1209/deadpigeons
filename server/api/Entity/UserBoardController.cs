@@ -1,4 +1,5 @@
-﻿using efscaffold;
+﻿using Microsoft.AspNetCore.Authorization;
+using efscaffold;
 using efscaffold.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.Entity;
 
-[Authorize]
+[Authorize] // requires JWT for ALL endpoints
 [ApiController]
 [Route("api/[controller]")]
 public class UserBoardController : ControllerBase
@@ -40,7 +41,7 @@ public class UserBoardController : ControllerBase
     }
 
     // POST: /api/userboard
-    [Authorize]
+    [Authorize(Roles = "admin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] UserBoard userBoard)
     {
@@ -56,7 +57,7 @@ public class UserBoardController : ControllerBase
     }
 
     // PUT: /api/userboard/{id}
-    [Authorize]
+    [Authorize(Roles = "admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(string id, [FromBody] UserBoard userBoard)
     {
@@ -79,7 +80,7 @@ public class UserBoardController : ControllerBase
     }
 
     // DELETE: /api/userboard/{id}
-    [Authorize]
+    [Authorize(Roles = "admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {

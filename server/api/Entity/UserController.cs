@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using efscaffold;
 using efscaffold.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -6,6 +7,7 @@ using api.services; // استدعاء خدمة PasswordService
 
 namespace api.Entity;
 
+[Authorize] // requires JWT for ALL endpoints
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
@@ -39,6 +41,7 @@ public class UsersController : ControllerBase
     }
 
     // POST: /api/Users
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] User user)
     {
@@ -59,6 +62,7 @@ public class UsersController : ControllerBase
     }
 
     // PUT: /api/Users/{id}
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(string id, [FromBody] User updatedUser)
     {
@@ -89,6 +93,7 @@ public class UsersController : ControllerBase
     }
 
     // DELETE: /api/Users/{id}
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
